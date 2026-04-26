@@ -1,5 +1,8 @@
 ###
 
+from services.Service import Service
+from space.Space import Space
+
 
 class Kernel : 
     
@@ -8,8 +11,8 @@ class Kernel :
     #
     def __init__(self):
         
-        self.services = []
-        self.defaultSpace = None
+        self.services: list[Service] = []
+        self.defaultSpace: Space = Space()
         self.running: bool = False
         self.mainThread = None
     
@@ -35,7 +38,7 @@ class Kernel :
         self.running = False
     
     #
-    def getService(self) :
+    def getService(self)->Service :
         pass
     
     #
@@ -43,6 +46,6 @@ class Kernel :
         pass
     
     #
-    def getDefaultSpace(self) :
+    def getDefaultSpace(self)->Space :
         
         return self.defaultSpace
