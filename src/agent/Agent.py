@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from AgentState import AgentState
+from .AgentState import AgentState
 
 class Agent(ABC) : 
     
@@ -12,30 +12,30 @@ class Agent(ABC) :
         
         self.id: UUID = id
         self.name: str = name
-        self.state: AgentState = AgentState.INITIALIZING
+        self.state: AgentState = AgentState.NOT_RUNNING
         self.space = None
     
     @abstractmethod
     def onInitialize(self)-> None :
         
-        raise("Not implemented")
+        raise NotImplementedError("Not implemented !")
     
     @abstractmethod
     def onDestroy(self)-> None :
         
-        raise("Not implemented")
+        raise NotImplementedError("Not implemented !")
     
     @abstractmethod
     def receive(self)-> None :
         
-        raise("Not implemented")
+        raise NotImplementedError("Not implemented !")
     
     @abstractmethod
     def inSpace(self)-> None :
         
-        raise("Not implemented")
+        raise NotImplementedError("Not implemented !")
     
     @abstractmethod
     def leave(self)-> None :
         
-        raise("Not implemented")
+        raise NotImplementedError("Not implemented !")
