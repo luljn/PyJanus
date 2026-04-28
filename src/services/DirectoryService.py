@@ -1,4 +1,4 @@
-###
+# Directory Service
 
 from agent.Agent import Agent
 from .Service import Service
@@ -11,12 +11,27 @@ class DirectoryService(Service) :
         super().__init__()
     
     #
+    def startAsync(self) :
+        
+        pass
+    
+    #
+    def stopAsync(self) :
+        
+        pass
+    
+    #
+    def awaitRunning(self) :
+        
+        pass
+    
+    #
     def getAgents(self)-> list[Agent] :
         
         pass
     
     #
-    def HasAgent(self, a: Agent)-> bool :
+    def HasAgent(self, agent: Agent)-> bool :
         
         return False
     
