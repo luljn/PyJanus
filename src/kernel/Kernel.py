@@ -1,41 +1,47 @@
-###
+# class Kernel
+
+from __future__ import annotations
+from typing import Optional
 
 from services.Service import Service
 from space.Space import Space
 
-
+"""
+    _summary_ : 
+    
+"""
 class Kernel : 
     
-    instance = None
+    __instance: Optional[Kernel] = None
     
     #
     def __init__(self):
         
-        self.services: list[Service] = []
-        self.defaultSpace: Space = Space()
-        self.running: bool = False
-        self.mainThread = None
+        self.__services: list[Service] = []
+        self.__defaultSpace: Space = Space()
+        self.__running: bool = False
+        self.__mainThread = None
     
     #
     @staticmethod
     def getInstance() : 
         
-        if (Kernel.instance is None) :
-            Kernel.instance = Kernel()
+        if (Kernel.__instance is None) :
+            Kernel.__instance = Kernel()
             
-        return Kernel.instance
+        return Kernel.__instance
     
     #
     def start(self) -> None : 
         
-        self.running = True
+        self.__running = True
         print("Kernel started successfully :) !\n")
     
     #
     def stop(self) -> None :
         
         print("Kernel stoped without error :) !\n")
-        self.running = False
+        self.__running = False
     
     #
     def getService(self)->Service :
@@ -48,4 +54,4 @@ class Kernel :
     #
     def getDefaultSpace(self)->Space :
         
-        return self.defaultSpace
+        return self.__defaultSpace
