@@ -1,4 +1,4 @@
-####
+# class Behavior
 
 from agent.Agent import Agent
 
@@ -10,21 +10,21 @@ class Behavior() :
         pass
     
     #
-    def onStart()-> None :
+    def onStart(self)-> None :
         
         pass
     
     #
-    def onStop()-> None :
+    def onStop(self)-> None :
         
         pass
     
     #
-    def getOwner()-> Agent :
+    def getOwner(self)-> Agent :
         
         pass
     
     #
-    def asEventListener()-> None :
+    def asEventListener(self)-> None :
         
         pass
