@@ -1,18 +1,20 @@
-# MAIN CLASS
-
-from kernel.Kernel import Kernel
+# Main class : entry point of the platform.
 
 from os import system 
 from sys import platform
 
-"""The main class : its role is to start the Kernel.
+from kernel.Kernel import Kernel
+
+"""
+    _summary_ : The main class, its role is to start the Kernel.
+    
 """
 class Main : 
     
     @staticmethod
     def run() -> None :
         
-        # OS recognition for clearing screen.
+        # Screen clearing based on OS type.
         match platform : 
             case "win32" :    
                 system("cls")
