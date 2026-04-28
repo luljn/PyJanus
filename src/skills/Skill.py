@@ -1,4 +1,4 @@
-###
+# abstract class Skill
 
 from abc import ABC, abstractmethod
 
