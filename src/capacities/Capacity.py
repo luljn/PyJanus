@@ -1,7 +1,11 @@
-###
+# abstract class Capacity
 
 from abc import ABC, abstractmethod 
 
 class Capacity(ABC) :
     
-    pass
+    #
+    @abstractmethod
+    def __init__(self) :
+        
+        super().__init__()
