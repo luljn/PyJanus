@@ -1,6 +1,6 @@
 from typing import Callable, Type
 from uuid import UUID
-from io.sarl.sre.pysarlvm.lang.core import Agent
+from .Agent.Agent import Agent
 from io.sarl.sre.pysarlvm.lang.core import Lifecycle
 
 class HelloAgent4(Agent):

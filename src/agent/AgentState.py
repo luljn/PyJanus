@@ -1,4 +1,4 @@
-###
+# AgentState enum
 
 from enum import StrEnum
 

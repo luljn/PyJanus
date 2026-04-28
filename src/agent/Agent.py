@@ -1,41 +1,42 @@
-###
+# abstract class Agent
 
 from abc import ABC, abstractmethod
 from uuid import UUID
 
 from .AgentState import AgentState
+from space.Space import Space
 
 class Agent(ABC) : 
     
     @abstractmethod
     def __init__(self, id: UUID, name: str) :
         
-        self.id: UUID = id
-        self.name: str = name
-        self.state: AgentState = AgentState.NOT_RUNNING
-        self.space = None
+        self.__id: UUID = id
+        self.__name: str = name
+        self.__state: AgentState = AgentState.NOT_RUNNING
+        self.__space: Space = None
     
     @abstractmethod
-    def onInitialize(self)-> None :
+    def __onInitialize(self)-> None :
         
         raise NotImplementedError("Not implemented !")
     
     @abstractmethod
-    def onDestroy(self)-> None :
+    def __onDestroy(self)-> None :
         
         raise NotImplementedError("Not implemented !")
     
     @abstractmethod
-    def receive(self)-> None :
+    def __receive(self)-> None :
         
         raise NotImplementedError("Not implemented !")
     
     @abstractmethod
-    def inSpace(self)-> None :
+    def __inSpace(self)-> None :
         
         raise NotImplementedError("Not implemented !")
     
     @abstractmethod
-    def leave(self)-> None :
+    def __leave(self)-> None :
         
         raise NotImplementedError("Not implemented !")
