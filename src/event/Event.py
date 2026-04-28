@@ -1,4 +1,4 @@
-###
+# class Event
 
 class Event() :
     
@@ -8,17 +8,12 @@ class Event() :
         pass
     
     #
-    def getSource()-> None :
+    def getSource(self)-> None :
         
         pass
     
     #
-    def setSource()-> None :
-        
-        pass
-    
-    #
-    def getSource()-> None :
+    def setSource(self)-> None :
         
         pass
     
