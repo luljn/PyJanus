@@ -40,7 +40,7 @@ class Kernel :
     #
     def stop(self) -> None :
         
-        print("Kernel stoped without error :) !\n")
+        print("\nKernel stoped without error :) !\n")
         self.__running = False
     
     #
