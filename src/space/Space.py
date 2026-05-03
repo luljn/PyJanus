@@ -1,20 +1,20 @@
 # class Space
 
-from agent.Agent import Agent
+from uuid import UUID
 
 class Space :
     
     #
     def __init__(self) :
         
-        self.__participants: list[Agent] = []
+        self.__participants: list[UUID] = []
     
     #
-    def getParticipants(self)-> list[Agent] :
+    def getParticipants(self)-> list[UUID] :
         
-        return self.participants
+        return self.__participants
     
     #
-    def addParticipant(self, agent: Agent)-> None : 
+    def addParticipant(self, agentId: UUID)-> None : 
         
-        self.__participants.append(agent)
+        self.__participants.append(agentId)
