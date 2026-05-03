@@ -35,12 +35,12 @@ class Kernel :
     def start(self) -> None : 
         
         self.__running = True
-        print("Kernel started successfully :) !\n")
+        print("[INFO] Kernel started successfully :) !\n")
     
     #
     def stop(self) -> None :
         
-        print("\nKernel stoped without error :) !\n")
+        print("\n[INFO] Kernel stoped without error :) !\n")
         self.__running = False
     
     #
@@ -48,7 +48,7 @@ class Kernel :
         pass
     
     #
-    def spawn(self) :
+    def spawn(self, moduleName: str)-> None :
         pass
     
     #

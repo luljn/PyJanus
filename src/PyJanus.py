@@ -1,7 +1,8 @@
 # Main class : entry point of the platform.
 
-from os import system 
-from sys import platform, argv, exit
+from argparse import ArgumentParser
+from os import system, path
+from sys import platform, exit
 
 from kernel.Kernel import Kernel
 
@@ -11,10 +12,16 @@ from kernel.Kernel import Kernel
 """
 class Main : 
     
-    __agents = {} # Agents to spawn (name & type).
+    #
+    __parser = ArgumentParser(description="Process the execution of agents.")
     
     @staticmethod
     def run() -> None :
+        
+        # 
+        Main.__parser.add_argument('modules', metavar='agent_type', type=str, nargs='+',
+                    help='Type of the agent to execute (module name)')
+        args = Main.__parser.parse_args()
         
         # Screen clearing based on OS type.
         match platform : 
@@ -23,28 +30,22 @@ class Main :
             case _ :    
                 system("clear")
         
-        # if the user does not provide the required arguments (agent type & name)
-        if ((len(argv)-1)%2 !=0 ) :
+        # 
+        for module in args.modules :
             
-            print("Usage : python PyJanus.py Type_Agent Name_Agent ...")
-            print("You must provide at least one agent type and a name for the agent")
-            print("When you provide an agent type, you must provide a name for the agent\n")
-            exit(1)
+            #
+            if not(path.exists(module)) or not(module.endswith('.py')) : 
+                print(f"[ERROR] Agent type '{module}' not found :( !")
+                exit(1)
         
-        else :
-            
-            print("\nPyJanus is working :) !\n")
-            
-            kernel:Kernel = Kernel.getInstance()
-            kernel.start()
-            
-            for i in range(1, len(argv), 2) :
-                
-                print(f"Spawn {argv[i+1]} of type {argv[i]}...")
-                Main.__agents[argv[i+1]] = argv[i]
-            
-            print(Main.__agents)
-            kernel.stop()
+        #
+        print("[INFO] PyJanus is working :) !\n")
+        
+        kernel:Kernel = Kernel.getInstance()
+        kernel.start()
+        print(f"Agents to spawn : {args.modules}")
+        
+        kernel.stop()
 
 
 
