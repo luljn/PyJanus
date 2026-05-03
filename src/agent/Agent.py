@@ -1,7 +1,7 @@
 # abstract class Agent
 
 from abc import ABC, abstractmethod
-from uuid import UUID
+from uuid import UUID, uuid5
 
 from .AgentState import AgentState
 from space.Space import Space
@@ -9,10 +9,10 @@ from space.Space import Space
 class Agent(ABC) : 
     
     @abstractmethod
-    def __init__(self, id: UUID, name: str) :
+    def __init__(self) :
         
-        self.__id: UUID = id
-        self.__name: str = name
+        self.__id: UUID = uuid5()
+        self.__name: str = f"Agent_{self.__id}"
         self.__state: AgentState = AgentState.NOT_RUNNING
         self.__space: Space = None
     
@@ -32,9 +32,9 @@ class Agent(ABC) :
         raise NotImplementedError("Not implemented !")
     
     @abstractmethod
-    def __inSpace(self)-> None :
+    def __inSpace(self, space: Space)-> None :
         
-        raise NotImplementedError("Not implemented !")
+        self.__space = space
     
     @abstractmethod
     def __leave(self)-> None :

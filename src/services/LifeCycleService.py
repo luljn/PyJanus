@@ -33,3 +33,7 @@ class LifeCycleService(Service) :
     def killAgent(self)-> bool :
         
         return True
+
+class Initialize :
+    
+    pass
