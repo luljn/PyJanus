@@ -1,10 +1,12 @@
 # Main class : entry point of the platform.
 
 from argparse import ArgumentParser
+from importlib import import_module
 from os import system, path
 from sys import platform, exit
 
 from kernel.Kernel import Kernel
+from kernel.ArgType import ArgType
 
 """
     _summary_ : The main class, its role is to start the Kernel.
@@ -14,13 +16,17 @@ class Main :
     
     #
     __parser = ArgumentParser(description="Process the execution of agents.")
+    __argType: ArgType = None
     
     @staticmethod
     def run() -> None :
         
-        # 
-        Main.__parser.add_argument('modules', metavar='agent_type', type=str, nargs='+',
-                    help='Type of the agent to execute (module name)')
+        # Command Line args definition
+        group = Main.__parser.add_mutually_exclusive_group(required=True)
+        group.add_argument('-f', '--file', nargs='+', metavar='FICHIER',
+                    help="Path to one or more .py files (e.g : agent/HelloAgent.py)")
+        group.add_argument('-m', '--module', nargs='+', metavar='MODULE',
+                    help="Name of one or more modules (e.g., agent.HelloAgent)")
         args = Main.__parser.parse_args()
         
         # Screen clearing based on OS type.
@@ -30,22 +36,52 @@ class Main :
             case _ :    
                 system("clear")
         
-        # 
-        for module in args.modules :
-            
-            #
-            if not(path.exists(module)) or not(module.endswith('.py')) : 
-                print(f"[ERROR] Agent type '{module}' not found :( !")
-                exit(1)
-        
-        #
+        # System info on VM status.
         print("[INFO] PyJanus is working :) !\n")
         
         kernel:Kernel = Kernel.getInstance()
         kernel.start()
-        print(f"Agents to spawn : {args.modules}")
         
-        kernel.stop()
+        # If files used
+        if args.file :
+            
+            Main.__argType = ArgType.FILE
+            # Testing on args.
+            for file in args.file :
+                
+                if not(path.exists(file)) or not(file.endswith('.py')) : 
+                    print(f"[ERROR] Agent type '{file}' not found :( !")
+                    exit(1)
+            
+            """ print(f"\r[INFO] Agents to spawn : {args.file}", end=" ", flush=True) """
+            print(f"\r[INFO] Agents to spawn : {args.file}")
+            for file in args.file :
+                kernel.spawn(ArgType.FILE, file)
+        
+        # If modules used
+        elif args.module :
+            
+            Main.__argType = ArgType.MODULE
+            # Testing on args.
+            for module in args.module :
+                
+                try :
+                    import_module(module)
+                    print(f"\r[INFO] Agents to spawn : {args.module}", end=" ", flush=True)
+                
+                except ModuleNotFoundError :
+                    print(f"[ERROR] : Agent '{module}' not found :( ! Please check the module name.")
+                    exit(1)
+                
+                except Exception as e :
+                    print(f"[ERROR] : Something went wrong while executing '{module}' : {e}")
+                    exit(1)
+            
+            print(f"\r[INFO] Agents to spawn : {args.module}")
+            for module in args.module :
+                kernel.spawn(ArgType.MODULE, module)
+        
+        kernel.stop() # To remove, it is just for testing.
 
 
 
