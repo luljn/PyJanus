@@ -1,11 +1,13 @@
-# Kill Skill
+from skills.Skill import Skill
 
-from .Skill import Skill
-from capacities.LifeCycleCapacity import LifeCycleCapacity
 
-class KillSkill(Skill, LifeCycleCapacity) :
-    
-    #
-    def __init__(self) :
-        
+class KillSkill(Skill):
+
+    def __init__(self):
         super().__init__()
+
+    def kill_me(self):
+        print("Current agent killed")
+
+    def execute(self):
+        print("KillSkill executed")

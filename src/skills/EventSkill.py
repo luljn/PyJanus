@@ -1,26 +1,19 @@
-# Event Skill
+from skills.Skill import Skill
 
-from .Skill import Skill
-from capacities.EventCapacity import EventCapacity
 
-class EventSkill(Skill, EventCapacity) :
-    
-    #
-    def __init__(self) :
-        
+class EventSkill(Skill):
+
+    def __init__(self):
         super().__init__()
-    
-    #
-    def emit()-> None :
-        
-        pass
-    
-    #
-    def receive()-> None : 
-        
-        pass
-    
-    #
-    def wake()-> None : 
-        
-        pass
+
+    def emit(self, event):
+        print(f"Emit event : {event}")
+
+    def receive(self, event):
+        print(f"Receive event : {event}")
+
+    def wake(self):
+        print("Wake up behavior")
+
+    def execute(self):
+        print("EventSkill executed")
