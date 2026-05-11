@@ -25,7 +25,7 @@ class LifeCycleCapacity(Capacity):
         """
         pass
 
-    @abstractmethod
+    """"@abstractmethod
     def spawn_in_context(self, agent_type: type, context_id, *args) -> None:
-        """Crée un agent dans un contexte spécifique."""
-        pass
+        Crée un agent dans un contexte spécifique.
+        pass"""
