@@ -1,209 +1,188 @@
-# LifeCycle Service
-
-from .Service import Service
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, Callable
 import uuid
 import asyncio
 import threading
+from .Service import Service
+from agent.Agent import Agent
+from behavior.Behavior import Behavior
 
-class Agent:
-    """Classe représentant un agent dans le système"""
-    def __init__(self, agent_id: str, name: str, space=None):
-        self.id = agent_id
-        self.name = name
-        self.state = "CREATED"
-        self.space = space
-        self._running = False
-    
-    def onInitialize(self) -> None:
-        """Méthode appelée lors de l'initialisation de l'agent"""
-        self.state = "INITIALIZED"
-        print(f"Agent {self.name} initialisé")
-    
-    def onDestroy(self) -> None:
-        """Méthode appelée lors de la destruction de l'agent"""
-        self.state = "DESTROYED"
-        print(f"Agent {self.name} détruit")
-    
-    def receive(self, message: Any) -> None:
-        """Reçoit un message"""
-        print(f"Agent {self.name} a reçu: {message}")
-    
-    def isSpace(self) -> bool:
-        """Vérifie si l'agent a un espace"""
-        return self.space is not None
-    
-    def leave(self) -> None:
-        """Fait quitter l'espace à l'agent"""
-        if self.space:
-            self.space = None
-            print(f"Agent {self.name} a quitté son espace")
-
-class Behavior:
-    """Comportement d'un agent"""
-    def __init__(self, owner: Agent):
-        self._owner = owner
-    
-    def onStart(self) -> None:
-        """Appelé au démarrage du comportement"""
-        print(f"Comportement démarré pour {self._owner.name}")
-    
-    def onStop(self) -> None:
-        """Appelé à l'arrêt du comportement"""
-        print(f"Comportement arrêté pour {self._owner.name}")
-    
-    def getOwner(self) -> Agent:
-        """Retourne le propriétaire du comportement"""
-        return self._owner
-
-class Initialize:
-    """Classe d'initialisation des agents"""
-    def __init__(self):
-        self.agents = []
-    
-    def create_agent(self, name: str, space=None) -> Agent:
-        """Crée un nouvel agent"""
-        agent_id = str(uuid.uuid4())
-        agent = Agent(agent_id, name, space)
-        self.agents.append(agent)
-        return agent
 
 class LifeCycleService(Service):
     
-    def __init__(self):
+    def __init__(self, agent_concrete_class: Optional[type] = None):
+        """Initialise le service de cycle de vie."""
         super().__init__()
-        self._agents: Dict[str, Agent] = {}
-        self._behaviors: Dict[str, Behavior] = {}
-        self._initializer = Initialize()
+        self._agents: Dict[str, Any] = {}          # ID externe -> agent
+        self._agent_ids: Dict[Any, str] = {}       # agent -> ID externe
+        self._behaviors: Dict[str, Any] = {}       # ID agent -> behavior
+        self._agent_concrete_class = agent_concrete_class
         self._lock = threading.Lock()
         self._running = False
+        self._callbacks: Dict[str, list] = {}
     
-    def startAsync(self) -> None:
-        """Démarre le service de cycle de vie"""
+    async def startAsync(self) -> None:
         self._set_state("STARTING")
         self._running = True
         self._set_state("RUNNING")
-        print("LifeCycleService démarré")
+        print(f"[{self.name}] Service démarré")
     
-    def stopAsync(self) -> None:
-        """Arrête le service et tous les agents"""
+    async def stopAsync(self) -> None:
         self._set_state("STOPPING")
         self._running = False
         
-        # Tuer tous les agents
         with self._lock:
-            for agent_id in list(self._agents.keys()):
-                self._kill_agent_sync(agent_id)
+            agent_ids = list(self._agents.keys())
+            for agent_id in agent_ids:
+                await self._kill_agent_async(agent_id)
         
         self._set_state("STOPPED")
-        print("LifeCycleService arrêté")
+        print(f"[{self.name}] Service arrêté")
     
-    def awaitRunning(self) -> None:
-        """Attend que le service soit en état RUNNING"""
-        while self._state != "RUNNING":
-            if self._state in ["STOPPED", "FAILED"]:
-                raise RuntimeError("LifeCycleService stopped or failed")
-            import time
-            time.sleep(0.1)
+    def _call_agent_method(self, agent, private_method_name: str, fallback_name: str, *args, **kwargs):
+        """Appelle dynamiquement une méthode privée de l'agent en gérant le name mangling."""
+        # 1. Tenter avec le nom manglé de la classe concrète de l'agent
+        class_name = agent.__class__.__name__
+        mangled_name = f"_{class_name}{private_method_name}"
+        if hasattr(agent, mangled_name):
+            return getattr(agent, mangled_name)(*args, **kwargs)
+            
+        # 2. Tenter avec le nom manglé de la classe parente de base 'Agent'
+        agent_mangled_name = f"_Agent{private_method_name}"
+        if hasattr(agent, agent_mangled_name):
+            return getattr(agent, agent_mangled_name)(*args, **kwargs)
+            
+        # 3. Fallback sur la méthode publique ou protected alternative
+        if hasattr(agent, fallback_name):
+            return getattr(agent, fallback_name)(*args, **kwargs)
+            
+        raise AttributeError(f"L'agent {class_name} n'a pas de méthode {private_method_name} ou {fallback_name}")
     
-    def spawnAgent(self, name: str = None, space=None, agent_class=None, **kwargs) -> str:
-        """Crée et démarre un nouvel agent"""
+    def _get_agent_attr(self, agent, attr_name: str, default=None):
+        class_name = agent.__class__.__name__
+        mangled_attr = f"_{class_name}__{attr_name}"
+        if hasattr(agent, mangled_attr):
+            return getattr(agent, mangled_attr)
+        
+        mangled_base = f"_Agent__{attr_name}"
+        if hasattr(agent, mangled_base):
+            return getattr(agent, mangled_base)
+            
+        if hasattr(agent, attr_name):
+            return getattr(agent, attr_name)
+        return default
+    
+    def _set_agent_attr(self, agent, attr_name: str, value) -> bool:
+        class_name = agent.__class__.__name__
+        mangled_attrs = [f"_{class_name}__{attr_name}", f"_Agent__{attr_name}", attr_name]
+        
+        for attr in mangled_attrs:
+            if hasattr(agent, attr):
+                setattr(agent, attr, value)
+                return True
+        setattr(agent, attr_name, value)
+        return True
+    
+    async def spawnAgent(self, name: Optional[str] = None, space=None, agent_class=None, 
+                         auto_initialize: bool = True, **kwargs) -> str:
         if not self._running:
-            raise RuntimeError("LifeCycleService n'est pas en état RUNNING")
+            raise RuntimeError(f"[{self.name}] Service n'est pas en état RUNNING")
         
-        agent_id = str(uuid.uuid4())
-        agent_name = name or f"Agent_{agent_id[:8]}"
+        external_id = str(uuid.uuid4())
+        agent_class_to_use = agent_class or self._agent_concrete_class
+        if not agent_class_to_use:
+            raise RuntimeError(f"[{self.name}] Aucune classe d'agent fournie.")
         
-        # Créer l'agent
-        if agent_class:
-            agent = agent_class(agent_id, agent_name, space, **kwargs)
-        else:
-            agent = Agent(agent_id, agent_name, space)
+        try:
+            # On instancie l'agent en lui fournissant l'UUID généré
+            agent = agent_class_to_use()
+        except TypeError as e:
+            raise RuntimeError(f"[{self.name}] Échec d'instanciation de {agent_class_to_use}: {e}")
         
-        # Initialiser l'agent
-        agent.onInitialize()
+        if name:
+            self._set_agent_attr(agent, 'name', name)
+        if space:
+            self._set_agent_attr(agent, 'space', space)
+            
+        if auto_initialize:
+            try:
+                self._call_agent_method(agent, '__onInitialize', 'onInitialize')
+            except AttributeError:
+                print(f"[{self.name}] Warning: L'agent n'a pas de méthode d'initialisation")
         
-        # Ajouter à la liste
         with self._lock:
-            self._agents[agent_id] = agent
+            self._agents[external_id] = agent
+            self._agent_ids[agent] = external_id
         
-        print(f"Agent spawné: {agent_name} (ID: {agent_id})")
-        return agent_id
-   # Suivre l'exécution du diagramme de séquence de cr&ation du 1er Agent  
-    def killAgent(self, agent_id: str) -> bool:
-        """Tue un agent existant"""
+        agent_name_display = name or self._get_agent_attr(agent, 'name', "Unknown")
+        agent_internal_id = self._get_agent_attr(agent, 'id', "None")
+        print(f"[{self.name}] Agent spawné: {agent_name_display} (Ext ID: {external_id}, Int ID: {agent_internal_id})")
+        await self._trigger_callbacks('agent_created', external_id, agent)
+        return external_id
+    
+    async def killAgent(self, agent_id: str, auto_destroy: bool = True) -> bool:
         if not self._running:
             return False
-        
-        return self._kill_agent_sync(agent_id)
+        return await self._kill_agent_async(agent_id, auto_destroy)
     
-    def _kill_agent_sync(self, agent_id: str) -> bool:
-        """Version synchrone de killAgent"""
+    async def _kill_agent_async(self, agent_id: str, auto_destroy: bool = True) -> bool:
         with self._lock:
             if agent_id not in self._agents:
                 return False
-            
             agent = self._agents[agent_id]
             
-            # Appeler la méthode de destruction
-            agent.onDestroy()
+            if auto_destroy:
+                try:
+                    self._call_agent_method(agent, '__onDestroy', 'onDestroy')
+                except AttributeError:
+                    print(f"[{self.name}] Warning: L'agent n'a pas de méthode onDestroy")
             
-            # Nettoyer les comportements associés
             if agent_id in self._behaviors:
                 behavior = self._behaviors[agent_id]
-                behavior.onStop()
+                if hasattr(behavior, 'onStop'):
+                    try: behavior.onStop()
+                    except Exception as e: print(f"Error stopping behavior: {e}")
                 del self._behaviors[agent_id]
             
-            # Supprimer l'agent
             del self._agents[agent_id]
+            if agent in self._agent_ids:
+                del self._agent_ids[agent]
             
-            print(f"Agent tué: {agent.name} (ID: {agent_id})")
+            agent_name = self._get_agent_attr(agent, 'name', "Unknown")
+            print(f"[{self.name}] Agent tué: {agent_name} (ID: {agent_id})")
             return True
-    
-    def getAgent(self, agent_id: str) -> Optional[Agent]:
-        """Retourne un agent par son ID"""
-        with self._lock:
-            return self._agents.get(agent_id)
-    
-    def getAllAgents(self) -> Dict[str, Agent]:
-        """Retourne tous les agents"""
-        with self._lock:
-            return self._agents.copy()
-    
-    def getNumberOfAgents(self) -> int:
-        """Retourne le nombre d'agents"""
-        with self._lock:
-            return len(self._agents)
-    
-    def addBehavior(self, agent_id: str, behavior: Behavior) -> bool:
-        """Ajoute un comportement à un agent"""
-        with self._lock:
-            if agent_id not in self._agents:
-                return False
             
-            self._behaviors[agent_id] = behavior
-            behavior.onStart()
-            return True
-    
-    def getBehavior(self, agent_id: str) -> Optional[Behavior]:
-        """Retourne le comportement d'un agent"""
-        with self._lock:
-            return self._behaviors.get(agent_id)
-    
-    def sendMessage(self, to_agent_id: str, message: Any) -> bool:
-        """Envoie un message à un agent"""
+    def getAgent(self, agent_id: str) -> Optional[Any]:
+        with self._lock: return self._agents.get(agent_id)
+        
+    async def sendMessage(self, to_agent_id: str, message: Any) -> bool:
         with self._lock:
             if to_agent_id not in self._agents:
                 return False
-            
             agent = self._agents[to_agent_id]
-            agent.receive(message)
+            
+        try:
+            self._call_agent_method(agent, '__receive', 'receive', message)
             return True
+        except AttributeError:
+            print(f"[{self.name}] Warning: Aucun point d'entrée de réception trouvé sur l'agent")
+            return False
+
+    def getAgentName(self, agent_id: str) -> Optional[str]:
+        agent = self.getAgent(agent_id)
+        return self._get_agent_attr(agent, 'name') if agent else None
+
+    def registerCallback(self, event: str, callback: Callable):
+        if event not in self._callbacks:
+            self._callbacks[event] = []
+        self._callbacks[event].append(callback)
     
-    def createAndSpawnAgent(self, name: str, space=None) -> str:
-        """Crée et spawn un agent via l'initializer"""
-        agent = self._initializer.create_agent(name, space)
-        with self._lock:
-            self._agents[agent.id] = agent
-        agent.onInitialize()
-        return agent.id
+    async def _trigger_callbacks(self, event: str, *args, **kwargs):
+        if event in self._callbacks:
+            for callback in self._callbacks[event]:
+                try:
+                    if asyncio.iscoroutinefunction(callback):
+                        await callback(*args, **kwargs)
+                    else:
+                        callback(*args, **kwargs)
+                except Exception as e:
+                    print(f"[{self.name}] Error in callback {event}: {e}")
