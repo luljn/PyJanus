@@ -49,7 +49,7 @@ class EventService(Service):
         self._event_queue = asyncio.Queue()
         self._dispatcher_task = asyncio.create_task(self._dispatch_loop())
         self._set_state("RUNNING")
-        print(f"[{self.name}] Service d'événements prêt.")
+        print(f"[{self.name}] Service started.")
     
     async def stopAsync(self) -> None:
         self._set_state("STOPPING")

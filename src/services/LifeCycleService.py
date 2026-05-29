@@ -1,3 +1,5 @@
+# LifeCycleService
+
 from typing import Dict, Optional, Any, Callable
 import uuid
 import asyncio
@@ -7,12 +9,13 @@ import threading
 from .Service import Service
 from agent.Agent import Agent
 from behavior.Behavior import Behavior
+from space.Space import Space
 
 
 class LifeCycleService(Service):
     
     def __init__(self, agent_concrete_class: Optional[Agent] = None):
-        """Initialise le service de cycle de vie."""
+        """Initialize the LifeCycleService."""
         super().__init__()
         self._agents: Dict[str, Any] = {}          # ID externe -> agent
         self._agent_ids: Dict[Any, str] = {}       # agent -> ID externe
@@ -26,7 +29,7 @@ class LifeCycleService(Service):
         self._set_state("STARTING")
         self._running = True
         self._set_state("RUNNING")
-        print(f"[{self.name}] Service démarré")
+        print(f"[{self.name}] Service started")
     
     async def stopAsync(self) -> None:
         self._set_state("STOPPING")
@@ -38,21 +41,21 @@ class LifeCycleService(Service):
                 await self._kill_agent_async(agent_id)
         
         self._set_state("STOPPED")
-        print(f"[{self.name}] Service arrêté")
+        print(f"[{self.name}] Service stopped")
     
     def _call_agent_method(self, agent, private_method_name: str, fallback_name: str, *args, **kwargs):
-        """Appelle dynamiquement une méthode de l'agent (protégée ou publique)."""
+        """Dynamically calls a method of the agent (protected or public)."""
         class_name = agent.__class__.__name__
         
-        # 1. Tenter avec le nom protégé exact (ex: '_onInitialize')
+        # 1. Try with the protected name (ex: '_onInitialize')
         if hasattr(agent, private_method_name):
             return getattr(agent, private_method_name)(*args, **kwargs)
             
-        # 2. Fallback sur la méthode publique alternative (ex: 'onInitialize')
+        # 2. Fallback on the alternative public method (ex: 'onInitialize')
         if hasattr(agent, fallback_name):
             return getattr(agent, fallback_name)(*args, **kwargs)
             
-        # 3. Si aucune des deux n'existe, on lève une erreur claire
+        # 3. If no one exists
         raise AttributeError(f"[{self.name}] L'agent {class_name} n'a ni la méthode {private_method_name}, ni {fallback_name}")
     
     def _get_agent_attr(self, agent, attr_name: str, default=None):
@@ -80,36 +83,36 @@ class LifeCycleService(Service):
         setattr(agent, attr_name, value)
         return True
     
-    async def spawnAgent(self, name: Optional[str] = None, space=None, agent_class=None, 
+    async def spawnAgent(self, name: Optional[str] = None, space:Space=None, agent_class:str=None, 
                          auto_initialize: bool = True, **kwargs) -> None :
         if not self._running:
-            raise RuntimeError(f"[{self.name}] Service n'est pas en état RUNNING")
+            raise RuntimeError(f"[{self.name}] Service is not in RUNNING state")
         
         external_id = str(uuid.uuid4())
         #agent_class_to_use = agent_class or self._agent_concrete_class
         agent_class_to_use = getattr(import_module(agent_class), agent_class.split('.')[-1])
         if not agent_class_to_use:
-            raise RuntimeError(f"[{self.name}] Aucune classe d'agent fournie.")
+            raise RuntimeError(f"[{self.name}] No Agent class given.")
         
         try:
             # On instancie l'agent en lui fournissant l'UUID généré
             agent:Agent = agent_class_to_use()
         except TypeError as e:
-            raise RuntimeError(f"[{self.name}] Échec d'instanciation de {agent_class_to_use}: {e}")
+            raise RuntimeError(f"[{self.name}] Instantiation failed {agent_class_to_use}: {e}")
         
         if name:
             self._set_agent_attr(agent, 'name', name)
         if space:
             self._set_agent_attr(agent, 'space', space)
         
-        print(f"[{self.name}] Agent spawné: {agent.getName()} (ID: {agent.getID()})")
+        print(f"\n[{self.name}] Agent spawned-> Name: {agent.getName()} - ID: {agent.getID()} - Type: {agent.__class__}\n")
         await self._trigger_callbacks('agent_created', agent.getID(), agent)
         
         if auto_initialize:
             try:
                 self._call_agent_method(agent, '_onInitialize', 'onInitialize')
             except AttributeError:
-                print(f"[{self.name}] Warning: L'agent n'a pas de méthode d'initialisation")
+                print(f"[{self.name}] Warning: agent has not onInitialize method")
         
         with self._lock:
             self._agents[external_id] = agent
@@ -130,7 +133,7 @@ class LifeCycleService(Service):
                 try:
                     self._call_agent_method(agent, '_onDestroy', 'onDestroy')
                 except AttributeError:
-                    print(f"[{self.name}] Warning: L'agent n'a pas de méthode onDestroy")
+                    print(f"[{self.name}] Warning: agent has not onDestroy method")
             
             if agent_id in self._behaviors:
                 behavior = self._behaviors[agent_id]
@@ -144,7 +147,7 @@ class LifeCycleService(Service):
                 del self._agent_ids[agent]
             
             agent_name = self._get_agent_attr(agent, 'name', "Unknown")
-            print(f"[{self.name}] Agent tué: {agent_name} (ID: {agent_id})")
+            print(f"[{self.name}] Agent Killed: {agent_name} (ID: {agent_id})")
             return True
             
     def getAgent(self, agent_id: str) -> Optional[Any]:
@@ -160,7 +163,7 @@ class LifeCycleService(Service):
             self._call_agent_method(agent, '__receive', 'receive', message)
             return True
         except AttributeError:
-            print(f"[{self.name}] Warning: Aucun point d'entrée de réception trouvé sur l'agent")
+            print(f"[{self.name}] Warning: No receiving entry point found on the agent")
             return False
 
     def getAgentName(self, agent_id: str) -> Optional[str]:
@@ -184,11 +187,11 @@ class LifeCycleService(Service):
                     print(f"[{self.name}] Error in callback {event}: {e}")
 
 class Initialize:
-    """Événement d'initialisation pour les agents"""
+    """Initialization event for agents"""
     pass
 
 class AgentSpawned:
-    """Événement déclenché quand un agent est spawné"""
+    """Event triggered when an agent is spawned"""
     def __init__(self, agent_id: str = None, agent_name: str = None):
         self.agent_id = agent_id
         self.agent_name = agent_name

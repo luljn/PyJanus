@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Callable, Any, Optional
 from .Service import Service
+from .Service import ServiceState
 @dataclass
 class Task:
     id: str
@@ -36,6 +37,7 @@ class ExecutionService(Service):
         self._worker_thread = threading.Thread(target=self._run_worker_loop, daemon=True)
         self._worker_thread.start()
         self._set_state("RUNNING")
+        print(f"[{self.name}] Service started.")
     
     async def stopAsync(self) -> None:
         self._set_state("STOPPING")
