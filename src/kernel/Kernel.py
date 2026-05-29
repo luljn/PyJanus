@@ -62,7 +62,7 @@ class Kernel :
     # Spawn an agent.
     def spawn(self, argType: ArgType, fileOrModuleName: str)-> None :
         
-        serviceToUse = self.getService(LifeCycleService)
+        self.getService(LifeCycleService).spawnAgent()
         match(argType) :
             case ArgType.FILE :
                 pass

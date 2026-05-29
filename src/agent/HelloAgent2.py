@@ -2,13 +2,13 @@ from typing import Callable, Type
 from uuid import UUID
 from .Agent import Agent
 from services.LifeCycleService import Initialize
-from io.sarl.sre.pysarlvm.lang.core import Lifecycle
+#from io.sarl.sre.pysarlvm.lang.core import Lifecycle
 
 class HelloAgent2(Agent):
     def __init__(self, id : UUID = None):
         super().__init__(id)
         # Define the mapping for all the function from the used capacities
-        self.killMe = lambda: self.getSkill(Type[Lifecycle]).killMe()
+        #self.killMe = lambda: self.getSkill(Type[Lifecycle]).killMe()
 
     # Nothing to generates for the SARL statement:
     # uses Lifecycle
