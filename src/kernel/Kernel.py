@@ -46,35 +46,50 @@ class Kernel :
         
         self.__running = True
         print("[INFO] Kernel started successfully :) !\n")
-        # Launching all services
+        # Starting all the services.
         for service in self.__services :
             run(service.start_async())
     
     # Stop the kernel.
     def stop(self) -> None :
         
+        # Starting all the services.
+        """ for service in self.__services :
+            run(service.stop_async()) """
         print("\n[INFO] Kernel stoped without any error :) !\n")
         self.__running = False
     
-    #
+    # To get a service with its Type.
     def getService(self, serviceClass: Type[Service])->Service :
         
         for service in self.__services : 
             if(isinstance(service, serviceClass)) :
-                print(f"service class : {service.__class__}") # To remove (it is just for testing).
+                #print(f"service class : {service.__class__}") # To remove (it is just for testing).
                 return service
     
     # Spawn an agent.
-    def spawn(self, argType: ArgType, fileOrModuleName: any)-> None :
+    def spawn(self, argType: ArgType, fileOrModuleName: str)-> None :
         
-        run(self.getService(LifeCycleService).spawnAgent(agent_class=fileOrModuleName))
-        """ match(argType) :
+        match(argType) :
             case ArgType.FILE :
-                pass
+                run(self.getService(LifeCycleService).spawnAgent(agent_class=self.__fileToModule(fileOrModuleName)))
             case ArgType.MODULE :
-                pass """
+                run(self.getService(LifeCycleService).spawnAgent(agent_class=fileOrModuleName))
     
-    #
+    # Return the default space.
     def getDefaultSpace(self)->Space :
         
         return self.__defaultSpace
+    
+    # Convert a file name to module name.
+    def __fileToModule(self, file_path : str) -> str:
+        """
+        Transform a file name (ex: 'agent/HelloAgent.py') 
+        in module dot notation (ex: 'agent.HelloAgent').
+        """
+        if file_path.endswith('.py'):
+            file_path = file_path[:-3]
+        
+        module = file_path.replace('/', '.').replace('\\', '.')
+        
+        return module.strip('.')

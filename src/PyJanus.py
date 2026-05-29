@@ -54,7 +54,7 @@ class Main :
                     exit(1)
             
             """ print(f"\r[INFO] Agents to spawn : {args.file}", end=" ", flush=True) """
-            print(f"\r[INFO] Agents to spawn : {args.file}")
+            print(f"\n\r[INFO] Agents to spawn : {args.file}\n")
             for file in args.file :
                 kernel.spawn(ArgType.FILE, file)
         
@@ -67,7 +67,7 @@ class Main :
                 
                 try :
                     import_module(module)
-                    print(f"\r[INFO] Agents to spawn : {args.module}", end=" ", flush=True)
+                    #print(f"\n\r[INFO] Agents to spawn : {args.module}", end=" ", flush=True)
                 
                 except ModuleNotFoundError :
                     print(f"[ERROR] : Agent '{module}' not found :( ! Please check the module name.")
@@ -77,7 +77,7 @@ class Main :
                     print(f"[ERROR] : Something went wrong while executing '{module}' : {e}")
                     exit(1)
             
-            print(f"\r[INFO] Agents to spawn : {args.module}")
+            print(f"\n\r[INFO] Agents to spawn : {args.module}\n")
             for module in args.module :
                 kernel.spawn(ArgType.MODULE, module)
         
