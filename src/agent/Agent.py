@@ -1,10 +1,14 @@
 # abstract class Agent
 
+from __future__ import annotations
 from abc import ABC, abstractmethod
 from uuid import UUID, uuid4
+from typing import TYPE_CHECKING
 
 from .AgentState import AgentState
 from space.Space import Space
+if TYPE_CHECKING :
+    from services.LifeCycleService import Initialize
 
 class Agent(ABC) :
     
@@ -16,27 +20,53 @@ class Agent(ABC) :
         self.__state: AgentState = AgentState.NOT_RUNNING
         self.__space: Space = None
     
-    @abstractmethod
-    def __onInitialize(self)-> None :
+    # Getters
+    def getID(self) -> int :
         
-        raise NotImplementedError("Not implemented !")
+        return self.__id
     
-    @abstractmethod
-    def __onDestroy(self)-> None :
+    def getName(self) -> str :
         
-        raise NotImplementedError("Not implemented !")
+        return self.__name
     
-    @abstractmethod
-    def __receive(self)-> None :
+    def getState(self) -> AgentState :
         
-        raise NotImplementedError("Not implemented !")
+        return self.__state
     
-    @abstractmethod
-    def __inSpace(self, space: Space)-> None :
+    def getSpace(self) -> Space :
+        
+        return self.__space
+    
+    # Setters
+    def setState(self, state: AgentState)-> None :
+        
+        self.__state = state
+    
+    def setSpace(self, space: Space)-> None :
         
         self.__space = space
     
     @abstractmethod
-    def __leave(self)-> None :
+    def _onInitialize(self, occurrence : Initialize = None) :
+        
+        raise NotImplementedError("Not implemented !")
+    
+    @abstractmethod
+    def _onDestroy(self)-> None :
+        
+        raise NotImplementedError("Not implemented !")
+    
+    @abstractmethod
+    def _receive(self)-> None :
+        
+        raise NotImplementedError("Not implemented !")
+    
+    @abstractmethod
+    def _inSpace(self, space: Space)-> None :
+        
+        self.__space = space
+    
+    @abstractmethod
+    def _leave(self)-> None :
         
         raise NotImplementedError("Not implemented !")
