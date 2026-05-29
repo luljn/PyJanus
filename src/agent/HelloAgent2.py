@@ -1,5 +1,6 @@
 from typing import Callable, Type
 from .Agent import Agent
+from .AgentState import AgentState
 from services.LifeCycleService import Initialize
 from space.Space import Space
 #from io.sarl.sre.pysarlvm.lang.core import Lifecycle
@@ -20,6 +21,7 @@ class HelloAgent2(Agent):
 
     def _onInitialize(self, occurrence : Initialize = None) :
         print("Hello World 2")
+        self.setState(AgentState.RUNNING)
         # Call the function killMe defined in the capacity Lifecycle
         #self.killMe()
     

@@ -49,7 +49,7 @@ class Agent(ABC) :
     @abstractmethod
     def _onInitialize(self, occurrence : Initialize = None) :
         
-        raise NotImplementedError("Not implemented !")
+        self.__state = AgentState.INITIALIZING
     
     @abstractmethod
     def _onDestroy(self)-> None :

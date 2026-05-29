@@ -1,6 +1,6 @@
 from typing import Callable
-from uuid import UUID
 from .Agent import Agent
+from .AgentState import AgentState
 from services.LifeCycleService import Initialize
 from space.Space import Space
 
@@ -16,6 +16,7 @@ class HelloAgent(Agent) :
 
     def _onInitialize(self, occurrence : Initialize = None) :
         print("Hello World")
+        self.setState(AgentState.RUNNING)
     
     def _onDestroy(self)-> None :
         
