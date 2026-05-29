@@ -1,17 +1,17 @@
 # abstract class Agent
 
 from abc import ABC, abstractmethod
-from uuid import UUID, uuid5
+from uuid import UUID, uuid4
 
 from .AgentState import AgentState
 from space.Space import Space
 
-class Agent(ABC) : 
+class Agent(ABC) :
     
     @abstractmethod
     def __init__(self) :
         
-        self.__id: UUID = uuid5()
+        self.__id: UUID = uuid4()
         self.__name: str = f"Agent_{self.__id}"
         self.__state: AgentState = AgentState.NOT_RUNNING
         self.__space: Space = None
