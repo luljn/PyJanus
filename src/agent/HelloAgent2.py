@@ -3,13 +3,14 @@ from .Agent import Agent
 from .AgentState import AgentState
 from services.LifeCycleService import Initialize
 from space.Space import Space
+from skills.KillSkill import KillSkill
 #from io.sarl.sre.pysarlvm.lang.core import Lifecycle
 
 class HelloAgent2(Agent):
     def __init__(self):
         super().__init__()
         # Define the mapping for all the function from the used capacities
-        #self.killMe = lambda: self.getSkill(Type[Lifecycle]).killMe()
+        self.killMe = lambda: self.getSkill(Type[KillSkill]).killMe()
 
     # Nothing to generates for the SARL statement:
     # uses Lifecycle
@@ -20,8 +21,8 @@ class HelloAgent2(Agent):
         _event_handlers.append(self._onInitialize)
 
     def _onInitialize(self, occurrence : Initialize = None) :
-        print("Hello World 2")
         self.setState(AgentState.RUNNING)
+        print(f"[{self.getName()}] Hello World 2\n")
         # Call the function killMe defined in the capacity Lifecycle
         #self.killMe()
     

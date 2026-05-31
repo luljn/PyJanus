@@ -15,8 +15,9 @@ class HelloAgent(Agent) :
         _event_handlers.append(self.__onInitialize)
 
     def _onInitialize(self, occurrence : Initialize = None) :
-        print("Hello World")
+        #super._onInitialize(occurrence)
         self.setState(AgentState.RUNNING)
+        print(f"[{self.getName()}] Hello World\n")
     
     def _onDestroy(self)-> None :
         
@@ -28,7 +29,7 @@ class HelloAgent(Agent) :
     
     def _inSpace(self, space: Space)-> None :
         
-        self.__space = space
+        super._inSpace(space)
     
     def _leave(self)-> None :
         

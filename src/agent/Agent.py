@@ -3,22 +3,35 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from uuid import UUID, uuid4
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Type
 
 from .AgentState import AgentState
 from space.Space import Space
 if TYPE_CHECKING :
+    from capacities.EventCapacity import EventCapacity
+    from capacities.LifeCycleCapacity import LifeCycleCapacity
     from services.LifeCycleService import Initialize
+    from skills.Skill import Skill
 
 class Agent(ABC) :
     
     @abstractmethod
-    def __init__(self) :
+    def __init__(self, id: UUID = None, ) :
         
         self.__id: UUID = uuid4()
         self.__name: str = f"Agent_{self.__id}"
         self.__state: AgentState = AgentState.NOT_RUNNING
         self.__space: Space = None
+        self.__skills:list[Skill] = []
+        
+        # Adding skills to the skills list.
+        from skills.EventSkill import EventSkill
+        from skills.KillSkill import KillSkill
+        from skills.SpawnSkill import SpawnSkill
+        self.__skills.extend([EventSkill(), KillSkill(), SpawnSkill()])
+        
+        # 
+        print(f"[INFO] Agent {self.__name} created")
     
     # Getters
     def getID(self) -> int :
@@ -46,10 +59,23 @@ class Agent(ABC) :
         
         self.__space = space
     
+    # To get a skill with its Type.
+    def getSkill(self, skillClass:Type[Skill])-> Skill :
+        for skill in self.__skills : 
+            if(isinstance(skill, skillClass)) :
+                return skill
+    
+    # To register in a Space
+    def register(self, space: Space)-> None :
+        
+        from capacities.EventCapacity import EventCapacity
+        EventCapacity.registerInSpace(self, space)
+    
     @abstractmethod
     def _onInitialize(self, occurrence : Initialize = None) :
         
-        self.__state = AgentState.INITIALIZING
+        #self.__state = AgentState.INITIALIZING
+        raise NotImplementedError("Not implemented !")
     
     @abstractmethod
     def _onDestroy(self)-> None :
@@ -62,9 +88,9 @@ class Agent(ABC) :
         raise NotImplementedError("Not implemented !")
     
     @abstractmethod
-    def _inSpace(self, space: Space)-> None :
+    def _inSpace(self, space: Space)-> bool :
         
-        self.__space = space
+        raise NotImplementedError("Not implemented !")
     
     @abstractmethod
     def _leave(self)-> None :
