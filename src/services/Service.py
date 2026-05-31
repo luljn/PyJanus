@@ -21,7 +21,7 @@ class Service(ABC):
         self._lock = threading.Lock()
         self._thread: Optional[threading.Thread] = None
         self._loop: Optional[asyncio.AbstractEventLoop] = None
-        
+    
     @property
     def name(self) -> str:
         return self._name
@@ -75,14 +75,14 @@ class Service(ABC):
         self._loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self._loop)
         self._loop.run_until_complete(self.startAsync())
-        
+    
     def stop_threaded(self):
         """Arrête le service de façon threadée"""
         if self._loop:
             asyncio.run_coroutine_threadsafe(self.stopAsync(), self._loop)
-
+    
     async def start_async(self):
         await self.startAsync()
-
+    
     async def stop_async(self):
         await self.stopAsync()

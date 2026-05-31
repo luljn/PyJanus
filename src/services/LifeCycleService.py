@@ -1,6 +1,6 @@
 # LifeCycleService
 
-from typing import Dict, Optional, Any, Callable
+from typing import Dict, Optional, Any, Callable, TYPE_CHECKING, Type
 import uuid
 import asyncio
 from importlib import import_module
@@ -8,8 +8,13 @@ import threading
 
 from .Service import Service
 from agent.Agent import Agent
+from agent.AgentState import AgentState
 from behavior.Behavior import Behavior
+from event.Event import Event
 from space.Space import Space
+if TYPE_CHECKING :
+    from kernel.Kernel import Kernel
+    from services.EventService import EventService
 
 
 class LifeCycleService(Service):
@@ -17,7 +22,7 @@ class LifeCycleService(Service):
     def __init__(self, agent_concrete_class: Optional[Agent] = None):
         """Initialize the LifeCycleService."""
         super().__init__()
-        self._agents: Dict[str, Any] = {}          # ID externe -> agent
+        self._agents: Dict[str, Agent] = {}          # ID externe -> agent
         self._agent_ids: Dict[Any, str] = {}       # agent -> ID externe
         self._behaviors: Dict[str, Any] = {}       # ID agent -> behavior
         self._agent_concrete_class = agent_concrete_class
@@ -88,15 +93,16 @@ class LifeCycleService(Service):
         if not self._running:
             raise RuntimeError(f"[{self.name}] Service is not in RUNNING state")
         
-        external_id = str(uuid.uuid4())
+        #external_id = str(uuid.uuid4())
         #agent_class_to_use = agent_class or self._agent_concrete_class
         agent_class_to_use = getattr(import_module(agent_class), agent_class.split('.')[-1])
         if not agent_class_to_use:
             raise RuntimeError(f"[{self.name}] No Agent class given.")
         
         try:
-            # On instancie l'agent en lui fournissant l'UUID généré
+            # Agent creation and initialization.
             agent:Agent = agent_class_to_use()
+            Initialize.initialize(agent)
         except TypeError as e:
             raise RuntimeError(f"[{self.name}] Instantiation failed {agent_class_to_use}: {e}")
         
@@ -105,7 +111,9 @@ class LifeCycleService(Service):
         if space:
             self._set_agent_attr(agent, 'space', space)
         
-        print(f"\n[{self.name}] Agent spawned-> Name: {agent.getName()} - ID: {agent.getID()} - Type: {agent.__class__}\n")
+        from kernel.Kernel import Kernel
+        agent.register(Kernel.getInstance().getDefaultSpace())
+        print(f"\n[{self.name}] Agent spawned-> Name: {agent.getName()} - ID: {agent.getID()} - Type: {agent.__class__.__name__}\n")
         await self._trigger_callbacks('agent_created', agent.getID(), agent)
         
         if auto_initialize:
@@ -114,9 +122,9 @@ class LifeCycleService(Service):
             except AttributeError:
                 print(f"[{self.name}] Warning: agent has not onInitialize method")
         
-        with self._lock:
+        """  with self._lock:
             self._agents[external_id] = agent
-            self._agent_ids[agent] = external_id
+            self._agent_ids[agent] = external_id """
     
     async def killAgent(self, agent_id: str, auto_destroy: bool = True) -> bool:
         if not self._running:
@@ -185,13 +193,16 @@ class LifeCycleService(Service):
                         callback(*args, **kwargs)
                 except Exception as e:
                     print(f"[{self.name}] Error in callback {event}: {e}")
+    
+    def emitAgentSpwaned()->Event : 
+        from kernel.Kernel import Kernel
+        from services.EventService import EventService
+        Kernel.getInstance().getService(Type[EventService]).emit()
 
 class Initialize:
     """Initialization event for agents"""
-    pass
-
-class AgentSpawned:
-    """Event triggered when an agent is spawned"""
-    def __init__(self, agent_id: str = None, agent_name: str = None):
-        self.agent_id = agent_id
-        self.agent_name = agent_name
+    @staticmethod
+    def initialize(agent: Agent)-> None : 
+        print(f"Initialization of Agent {agent.getName()}")
+        agent.setState(AgentState.INITIALIZING)
+        return None

@@ -4,12 +4,13 @@ from .Service import Service
 from typing import List, Dict, Optional
 import threading
 import asyncio
+from uuid import UUID
 
 class DirectoryService(Service):
     
     def __init__(self):
         super().__init__()
-        self._agents: Dict[str, Agent] = {}
+        self._agents: Dict[UUID, Agent] = {}
         self._lock = threading.Lock()  # ✅ threading.Lock, pas asyncio.Lock
     
     async def startAsync(self) -> None:
@@ -40,14 +41,14 @@ class DirectoryService(Service):
         raise ValueError("Cannot get agent ID")
     
     def register_agent(self, agent: Agent) -> bool:
-        try:
+        """ try:
             agent_id = self._get_agent_id(agent)
         except ValueError:
-            return False
+            return False"""
         with self._lock:
-            if agent_id in self._agents:
+            if agent.getID() in self._agents:
                 return False
-            self._agents[agent_id] = agent
+            self._agents[agent.getID()] = agent
         return True
     
     def unregister_agent(self, agent_id: str) -> bool:

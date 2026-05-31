@@ -4,6 +4,9 @@ from datetime import datetime
 import asyncio
 import uuid
 from .Service import Service
+from agent.Agent import Agent
+from space.Space import Space
+
 @dataclass
 class Event:
     """Structure d'un événement au sein du système de communication"""
@@ -127,3 +130,11 @@ class EventService(Service):
                 break
             except Exception as e:
                 print(f"Erreur dans la boucle du dispatcher d'événements: {e}")
+    
+    # To register an agent in a space.
+    def registerAgent(self, agent: Agent, space: Space) -> bool :
+        
+        if agent.getID() in space.getParticipants() : return False
+        space.addParticipant(agent.getID())
+        print(f"Agent {agent.getName()} registered to space {space.getName()}")
+        return True
