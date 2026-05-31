@@ -1,12 +1,14 @@
 # Main class : entry point of the platform.
 
 from argparse import ArgumentParser
+from asyncio import run
 from importlib import import_module
 from os import system, path
 from sys import platform, exit
 
 from kernel.Kernel import Kernel
 from kernel.ArgType import ArgType
+from services.DirectoryService import DirectoryService
 
 """
     _summary_ : The main class, its role is to start the Kernel.
@@ -14,7 +16,7 @@ from kernel.ArgType import ArgType
 """
 class Main : 
     
-    #
+    # Class attributes.
     __parser = ArgumentParser(description="Process the execution of agents.")
     __argType: ArgType = None
     
@@ -50,13 +52,13 @@ class Main :
             for file in args.file :
                 
                 if not(path.exists(file)) or not(file.endswith('.py')) : 
-                    print(f"[ERROR] Agent type '{file}' not found :( !")
+                    print(f"[ERROR] Agent type '{file}' not found :( ! Please check the file name")
                     exit(1)
             
             """ print(f"\r[INFO] Agents to spawn : {args.file}", end=" ", flush=True) """
             print(f"\n\r[INFO] Agents to spawn : {args.file}\n")
             for file in args.file :
-                kernel.spawn(ArgType.FILE, file)
+                run(kernel.spawn(ArgType.FILE, file))
         
         # If modules used
         elif args.module :
@@ -79,8 +81,10 @@ class Main :
             
             print(f"\n\r[INFO] Agents to spawn : {args.module}\n")
             for module in args.module :
-                kernel.spawn(ArgType.MODULE, module)
+                run(kernel.spawn(ArgType.MODULE, module))
         
+        print(kernel.getDefaultSpace().getParticipants())
+        print(kernel.getService(DirectoryService).getNumberOfAgents())
         kernel.stop() # To remove, it is just for testing.
 
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 from asyncio import run
+from threading import Thread
 from typing import Optional, Type
 
 from .ArgType import ArgType
@@ -27,10 +28,10 @@ class Kernel :
         self.__services: list[Service] = []
         self.__defaultSpace: Space = Space()
         self.__running: bool = False
-        self.__mainThread = None
+        self.__mainThread: Thread = Thread()
         
         # Adding services to the services list.
-        self.__services.extend([DirectoryService(), EventService(), ExecutionService(), LifeCycleService(agent_concrete_class=Agent)])
+        self.__services.extend([LifeCycleService(agent_concrete_class=Agent), DirectoryService(), EventService(), ExecutionService()])
     
     # Return an unique instance of the Kernel.
     @staticmethod
@@ -47,17 +48,20 @@ class Kernel :
         self.__running = True
         print("[INFO] Kernel started successfully :) !\n")
         # Starting all the services.
+        print("[INFO] Start services !\n")
         for service in self.__services :
             run(service.start_async())
     
     # Stop the kernel.
     def stop(self) -> None :
         
-        # Starting all the services.
+        # Stoping all the services.
         """ for service in self.__services :
+
             run(service.stop_async()) """
-        print("\n[INFO] Kernel stoped without any error :) !\n")
-        self.__running = False
+        if (self.__running) :
+            self.__running = False
+            print("\n[INFO] Kernel stoped without any error :) !\n")
     
     # To get a service with its Type.
     def getService(self, serviceClass: Type[Service])->Service :
@@ -68,13 +72,13 @@ class Kernel :
                 return service
     
     # Spawn an agent.
-    def spawn(self, argType: ArgType, fileOrModuleName: str)-> None :
+    async def spawn(self, argType: ArgType, fileOrModuleName: str)-> None :
         
         match(argType) :
             case ArgType.FILE :
-                run(self.getService(LifeCycleService).spawnAgent(agent_class=self.__fileToModule(fileOrModuleName)))
+                await(self.getService(Type[LifeCycleService]).spawnAgent(agent_class=self.__fileToModule(fileOrModuleName)))
             case ArgType.MODULE :
-                run(self.getService(LifeCycleService).spawnAgent(agent_class=fileOrModuleName))
+                await(self.getService(Type[LifeCycleService]).spawnAgent(agent_class=fileOrModuleName))
     
     # Return the default space.
     def getDefaultSpace(self)->Space :
