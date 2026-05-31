@@ -1,6 +1,6 @@
 # class Event
 
-class Event() :
+class Event :
     
     #
     def __init__(self) :
@@ -20,4 +20,11 @@ class Event() :
     # toString equivalent in Python.
     def __str__(self)-> None :
         
-        return 'Event\n'
+        return 'Event trigerred\n'
+
+"""Event triggered when an agent is spawned"""
+class AgentSpawned(Event) :
+    
+    def __init__():
+        
+        pass
