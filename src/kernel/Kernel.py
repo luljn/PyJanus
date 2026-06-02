@@ -28,7 +28,8 @@ class Kernel :
         self.__services: list[Service] = []
         self.__defaultSpace: Space = Space()
         self.__running: bool = False
-        self.__mainThread: Thread = Thread()
+        self.__stopFlag = {'active': False}
+        self.__mainThread: Thread = Thread(args=(self.__stopFlag,))
         
         # Adding services to the services list.
         self.__services.extend([LifeCycleService(agent_concrete_class=Agent), DirectoryService(), EventService(), ExecutionService()])
@@ -51,6 +52,8 @@ class Kernel :
         print("[INFO] Start services !\n")
         for service in self.__services :
             run(service.start_async())
+        self.__mainThread.start()
+        self.__mainThread.join()
     
     # Stop the kernel.
     def stop(self) -> None :
@@ -76,9 +79,9 @@ class Kernel :
         
         match(argType) :
             case ArgType.FILE :
-                await(self.getService(Type[LifeCycleService]).spawnAgent(agent_class=self.__fileToModule(fileOrModuleName)))
+                await(self.getService(LifeCycleService).spawnAgent(agent_class=self.__fileToModule(fileOrModuleName)))
             case ArgType.MODULE :
-                await(self.getService(Type[LifeCycleService]).spawnAgent(agent_class=fileOrModuleName))
+                await(self.getService(LifeCycleService).spawnAgent(agent_class=fileOrModuleName))
     
     # Return the default space.
     def getDefaultSpace(self)->Space :
