@@ -5,6 +5,8 @@ from asyncio import run
 from importlib import import_module
 from os import system, path
 from sys import platform, exit
+from time import sleep
+from threading import Thread, active_count
 
 from kernel.Kernel import Kernel
 from kernel.ArgType import ArgType
@@ -42,7 +44,10 @@ class Main :
         print("[INFO] PyJanus is working :) !\n")
         
         kernel:Kernel = Kernel.getInstance()
-        kernel.start()
+        #kernel.start()
+        stopFlag = {'active': False}
+        mainThread: Thread = Thread(target=kernel.start(), args=(stopFlag,))
+        mainThread.start()
         
         # If files used
         if args.file :
@@ -85,10 +90,32 @@ class Main :
         
         print(kernel.getDefaultSpace().getParticipants())
         print(kernel.getService(DirectoryService).getNumberOfAgents())
-        kernel.stop() # To remove, it is just for testing.
+        print(f"Nombre de threads actifs : {active_count()}") # To remove
+        
+        #
+        while not stopFlag['active'] :
+            if kernel.getService(DirectoryService).getNumberOfAgents() == 0 :
+                kernel.stop()
+                stopFlag['active'] = True
+            sleep(10)
+            kernel.getService(DirectoryService).getDictAgents().clear()
+            continue
+        
+        """ sleep(5)
+        stopFlag['active'] = True
+        kernel.stop(mainThread) # To remove, it is just for testing. """
 
 
 
 if __name__ == '__main__' :
     
+    """ stopFlag = {'active': False}
+    mainThread: Thread = Thread(target=Main.run(), args=(stopFlag,))
+    mainThread.start()
+    print(f"Nombre de threads actifs : {active_count()}")
+    #stopFlag['active'] = True
+    while not stopFlag['active'] :
+        sleep(1)
+        stopFlag['active'] = True """
     Main.run()
+    #print(f"Nombre de threads actifs : {active_count()}")

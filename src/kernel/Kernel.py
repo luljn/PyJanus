@@ -3,6 +3,7 @@
 from __future__ import annotations
 from asyncio import run
 from threading import Thread
+from time import sleep
 from typing import Optional, Type
 
 from .ArgType import ArgType
@@ -28,8 +29,8 @@ class Kernel :
         self.__services: list[Service] = []
         self.__defaultSpace: Space = Space()
         self.__running: bool = False
-        self.__stopFlag = {'active': False}
-        self.__mainThread: Thread = Thread(args=(self.__stopFlag,))
+        #self.__stopFlag = {'active': False}
+        #self.__mainThread: Thread = Thread(args=(self.__stopFlag,))
         
         # Adding services to the services list.
         self.__services.extend([LifeCycleService(agent_concrete_class=Agent), DirectoryService(), EventService(), ExecutionService()])
@@ -52,19 +53,22 @@ class Kernel :
         print("[INFO] Start services !\n")
         for service in self.__services :
             run(service.start_async())
-        self.__mainThread.start()
-        self.__mainThread.join()
+        """ self.__mainThread.start()
+        self.__mainThread.join() """
     
     # Stop the kernel.
     def stop(self) -> None :
         
-        # Stoping all the services.
-        """ for service in self.__services :
-
-            run(service.stop_async()) """
-        if (self.__running) :
-            self.__running = False
-            print("\n[INFO] Kernel stoped without any error :) !\n")
+        try :
+            # Stoping all the services.
+            for service in self.__services :
+                run(service.stop_async())
+            
+            if (self.__running) :
+                self.__running = False
+                print("\n[INFO] Kernel stoped without any error :) !\n")
+        except : # Exception management to implement.
+            pass
     
     # To get a service with its Type.
     def getService(self, serviceClass: Type[Service])->Service :
@@ -87,6 +91,12 @@ class Kernel :
     def getDefaultSpace(self)->Space :
         
         return self.__defaultSpace
+    
+    #
+    def getRunningState(self) :
+        
+        if self.__running : return self.__running
+        return not self.__running
     
     # Convert a file name to module name.
     def __fileToModule(self, file_path : str) -> str:
