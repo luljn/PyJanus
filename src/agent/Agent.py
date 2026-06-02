@@ -18,7 +18,7 @@ class Agent(ABC) :
     @abstractmethod
     def __init__(self, id: UUID = None, ) :
         
-        self.__id: UUID = uuid4()
+        self.__id: UUID = uuid4() if id is None else id
         self.__name: str = f"Agent_{self.__id}"
         self.__state: AgentState = AgentState.NOT_RUNNING
         self.__space: Space = None

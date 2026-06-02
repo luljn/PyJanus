@@ -36,7 +36,8 @@ class HelloAgent2(Agent):
     
     def _inSpace(self, space: Space)-> None :
         
-        self.__space = space
+        if self.__id in space.getParticipants() : return True
+        return False
     
     def _leave(self)-> None :
         
