@@ -3,6 +3,7 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from uuid import UUID, uuid4
+from threading import Thread
 from typing import TYPE_CHECKING, Type
 
 from .AgentState import AgentState
@@ -16,11 +17,12 @@ if TYPE_CHECKING :
 class Agent(ABC) :
     
     @abstractmethod
-    def __init__(self, id: UUID = None, ) :
+    def __init__(self, id: UUID = None) :
         
         self.__id: UUID = uuid4() if id is None else id
         self.__name: str = f"Agent_{self.__id}"
         self.__state: AgentState = AgentState.NOT_RUNNING
+        self.__thread: Thread = None
         self.__space: Space = None
         self.__skills:list[Skill] = []
         
@@ -75,7 +77,9 @@ class Agent(ABC) :
     def _onInitialize(self, occurrence : Initialize = None) :
         
         #self.__state = AgentState.INITIALIZING
-        raise NotImplementedError("Not implemented !")
+        #raise NotImplementedError("Not implemented !")
+        self.__thread = Thread(target=self.test, daemon=True)
+        self.__thread.start()
     
     @abstractmethod
     def _onDestroy(self)-> None :
@@ -96,3 +100,7 @@ class Agent(ABC) :
     def _leave(self)-> None :
         
         raise NotImplementedError("Not implemented !")
+    
+    #
+    def test(self) :
+        pass 

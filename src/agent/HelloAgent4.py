@@ -23,6 +23,7 @@ class HelloAgent4(Agent):
         self.killMe()
     
     def _onInitialize(self, occurrence : Initialize = None) :
+        super()._onInitialize()
         self.setState(AgentState.RUNNING)
         print(f"[{self.getName()}] Hello World 4\n")
         # Call the function killMe defined in the capacity Lifecycle

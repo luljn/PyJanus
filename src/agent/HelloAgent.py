@@ -15,7 +15,7 @@ class HelloAgent(Agent) :
         _event_handlers.append(self.__onInitialize)
 
     def _onInitialize(self, occurrence : Initialize = None) :
-        #super._onInitialize(occurrence)
+        super()._onInitialize(occurrence)
         self.setState(AgentState.RUNNING)
         print(f"[{self.getName()}] Hello World\n")
     
