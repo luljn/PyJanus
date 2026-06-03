@@ -64,6 +64,7 @@ class EventService(Service):
             except asyncio.CancelledError:
                 pass
         self._set_state("STOPPED")
+        print(f"[{self.name}] Service stoped")
     
     def registerListener(self, event_type: str, callback: Callable, owner: str) -> str:
         listener_id = str(uuid.uuid4())

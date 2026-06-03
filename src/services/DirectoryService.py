@@ -23,6 +23,7 @@ class DirectoryService(Service):
         with self._lock:
             self._agents.clear()
         self._set_state("STOPPED")
+        print(f"[{self.name}] Service stoped")
     
     async def awaitRunning(self) -> None:
         while True:
@@ -81,3 +82,8 @@ class DirectoryService(Service):
     def clear(self) -> None:
         with self._lock:
             self._agents.clear()
+    
+    #
+    def getDictAgents(self)-> Dict[UUID, Agent] :
+        
+        return self._agents

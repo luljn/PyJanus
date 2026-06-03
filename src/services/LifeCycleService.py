@@ -33,12 +33,15 @@ class LifeCycleService(Service):
     async def startAsync(self) -> None:
         self._set_state("STARTING")
         self._running = True
+        self._thread = threading.Thread(daemon=True)
+        self._thread.start()
         self._set_state("RUNNING")
         print(f"[{self.name}] Service started")
     
     async def stopAsync(self) -> None:
         self._set_state("STOPPING")
         self._running = False
+        print(f"[{self.name}] Service stoped")
         
         with self._lock:
             agent_ids = list(self._agents.keys())
@@ -119,6 +122,9 @@ class LifeCycleService(Service):
         if auto_initialize:
             try:
                 self._call_agent_method(agent, '_onInitialize', 'onInitialize')
+                #t = threading.Thread(target=self._call_agent_method(agent, '_onInitialize', 'onInitialize'))
+                #t.start()
+                #t.join()
             except AttributeError:
                 print(f"[{self.name}] Warning: agent has not onInitialize method")
         
@@ -197,7 +203,7 @@ class LifeCycleService(Service):
     def emitAgentSpwaned()->Event : 
         from kernel.Kernel import Kernel
         from services.EventService import EventService
-        Kernel.getInstance().getService(Type[EventService]).emit()
+        Kernel.getInstance().getService(EventService).emit()
 
 class Initialize:
     """Initialization event for agents"""

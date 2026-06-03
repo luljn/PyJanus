@@ -33,7 +33,7 @@ class Kernel :
         #self.__mainThread: Thread = Thread(args=(self.__stopFlag,))
         
         # Adding services to the services list.
-        self.__services.extend([LifeCycleService(agent_concrete_class=Agent), DirectoryService(), EventService(), ExecutionService()])
+        self.__services.extend([LifeCycleService(agent_concrete_class=Agent), DirectoryService(), ExecutionService(), EventService()])
     
     # Return an unique instance of the Kernel.
     @staticmethod
