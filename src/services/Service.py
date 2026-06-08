@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 import threading
 import asyncio
 from enum import Enum
+from time import sleep
 from typing import Optional, Union
 
 class ServiceState(Enum):
@@ -82,6 +83,7 @@ class Service(ABC):
             asyncio.run_coroutine_threadsafe(self.stopAsync(), self._loop)
     
     async def start_async(self):
+        self._thread = threading.Thread(target=sleep(1), daemon=True)
         await self.startAsync()
     
     async def stop_async(self):

@@ -33,10 +33,10 @@ class LifeCycleService(Service):
     async def startAsync(self) -> None:
         self._set_state("STARTING")
         self._running = True
-        self._thread = threading.Thread(daemon=True)
+        #self._thread = threading.Thread(daemon=True)
         self._thread.start()
         self._set_state("RUNNING")
-        print(f"[{self.name}] Service started")
+        print(f"[{self.name}] Service started.")
     
     async def stopAsync(self) -> None:
         self._set_state("STOPPING")

@@ -92,14 +92,15 @@ class Main :
         print(kernel.getService(DirectoryService).getNumberOfAgents())
         print(f"Nombre de threads actifs : {active_count()}") # To remove
         
-        #
+        # Kernel execution loop.
         while not stopFlag['active'] :
             if kernel.getService(DirectoryService).getNumberOfAgents() == 0 :
                 kernel.stop()
                 stopFlag['active'] = True
-            sleep(10)
+                mainThread.join()
+            """ sleep(10)
             kernel.getService(DirectoryService).getDictAgents().clear()
-            continue
+            continue """
         
         """ sleep(5)
         stopFlag['active'] = True
