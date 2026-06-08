@@ -1,7 +1,8 @@
 from typing import Callable
-from uuid import UUID
 from .Agent import Agent
+from .AgentState import AgentState
 from services.LifeCycleService import Initialize
+from space.Space import Space
 
 class HelloAgent(Agent) :
     
@@ -13,5 +14,24 @@ class HelloAgent(Agent) :
         it = occurrence
         _event_handlers.append(self.__onInitialize)
 
-    def __onInitialize(self, occurrence : Initialize) :
-        print("Hello World")
+    def _onInitialize(self, occurrence : Initialize = None) :
+        super()._onInitialize(occurrence)
+        self.setState(AgentState.RUNNING)
+        print(f"[{self.getName()}] Hello World\n")
+    
+    def _onDestroy(self)-> None :
+        
+        pass
+    
+    def _receive(self)-> None :
+        
+        pass
+    
+    def _inSpace(self, space: Space)-> None :
+        
+        if self.__id in space.getParticipants() : return True
+        return False
+    
+    def _leave(self)-> None :
+        
+        pass
