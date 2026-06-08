@@ -1,8 +1,8 @@
 # class Space
 
 from uuid import UUID, uuid4
-from agent.Agent import Agent
 
+from agent.Agent import Agent
 from event.Event import Event
 
 class Space :
@@ -27,9 +27,12 @@ class Space :
     # To emit an event in the space.
     def emit(self, event: Event)-> None :
         
-        for participant in self.getParticipants() :
+        # To ensure at least one agent will get the event.
+        if self.getParticipants() :
             
-            participant._receive()
+            for participant in self.getParticipants() :
+                
+                participant._receive()
     
     # Getters
     def getID(self)-> UUID :

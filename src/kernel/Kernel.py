@@ -33,7 +33,7 @@ class Kernel :
         #self.__mainThread: Thread = Thread(args=(self.__stopFlag,))
         
         # Adding services to the services list.
-        self.__services.extend([LifeCycleService(agent_concrete_class=Agent), DirectoryService(), ExecutionService(), EventService()])
+        self.__services.extend([LifeCycleService(), DirectoryService(), ExecutionService(), EventService()])
     
     # Return an unique instance of the Kernel.
     @staticmethod
@@ -92,7 +92,7 @@ class Kernel :
         
         return self.__defaultSpace
     
-    #
+    # To get the running state of the kernel.
     def getRunningState(self) :
         
         if self.__running : return self.__running

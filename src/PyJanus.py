@@ -27,7 +27,7 @@ class Main :
         
         # Command Line args definition
         group = Main.__parser.add_mutually_exclusive_group(required=True)
-        group.add_argument('-f', '--file', nargs='+', metavar='FICHIER',
+        group.add_argument('-f', '--file', nargs='+', metavar='FILE',
                     help="Path to one or more .py files (e.g : agent/HelloAgent.py)")
         group.add_argument('-m', '--module', nargs='+', metavar='MODULE',
                     help="Name of one or more modules (e.g., agent.HelloAgent)")
@@ -90,7 +90,7 @@ class Main :
         
         print(kernel.getDefaultSpace().getParticipants())
         print(kernel.getService(DirectoryService).getNumberOfAgents())
-        print(f"Nombre de threads actifs : {active_count()}") # To remove
+        #print(f"Nombre de threads actifs : {active_count()}") # To remove
         
         # Kernel execution loop.
         while not stopFlag['active'] :

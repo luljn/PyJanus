@@ -6,7 +6,7 @@ from services.EventService import EventService
 from services.LifeCycleService import Initialize
 from services.LifeCycleService import LifeCycleService
 from .HelloAgent4 import HelloAgent4
-from event.Event import AgentSpawned
+from event.AgentSpawned import AgentSpawned
 from event.MyEvent import MyEvent
 from space.Space import Space
 """ from io.sarl.sre.pysarlvm.lang.core import Agent

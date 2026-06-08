@@ -96,8 +96,6 @@ class LifeCycleService(Service):
         if not self._running:
             raise RuntimeError(f"[{self.name}] Service is not in RUNNING state")
         
-        #external_id = str(uuid.uuid4())
-        #agent_class_to_use = agent_class or self._agent_concrete_class
         agent_class_to_use = getattr(import_module(agent_class), agent_class.split('.')[-1])
         if not agent_class_to_use:
             raise RuntimeError(f"[{self.name}] No Agent class given.")
@@ -114,23 +112,19 @@ class LifeCycleService(Service):
         if space:
             self._set_agent_attr(agent, 'space', space)
         
-        from kernel.Kernel import Kernel
-        agent.register(Kernel.getInstance().getDefaultSpace())
-        print(f"\n[{self.name}] Agent spawned-> Name: {agent.getName()} - ID: {agent.getID()} - Type: {agent.__class__.__name__}\n")
-        await self._trigger_callbacks('agent_created', agent.getID(), agent)
+        if (not name and not space) :
+            from kernel.Kernel import Kernel
+            agent.register(Kernel.getInstance().getDefaultSpace())
+            #await self._trigger_callbacks('agent_created', agent.getID(), agent)
         
         if auto_initialize:
             try:
                 self._call_agent_method(agent, '_onInitialize', 'onInitialize')
-                #t = threading.Thread(target=self._call_agent_method(agent, '_onInitialize', 'onInitialize'))
-                #t.start()
-                #t.join()
+                print(self.emitAgentSpawned(agent))
             except AttributeError:
                 print(f"[{self.name}] Warning: agent has not onInitialize method")
-        
-        """  with self._lock:
-            self._agents[external_id] = agent
-            self._agent_ids[agent] = external_id """
+            
+        print(f"\n[{self.name}] Agent spawned-> Name: {agent.getName()} - ID: {agent.getID()} - Type: {agent.__class__.__name__}\n")
     
     async def killAgent(self, agent_id: str, auto_destroy: bool = True) -> bool:
         if not self._running:
@@ -200,15 +194,17 @@ class LifeCycleService(Service):
                 except Exception as e:
                     print(f"[{self.name}] Error in callback {event}: {e}")
     
-    def emitAgentSpwaned()->Event : 
+    # To emit AgentSpawned event.
+    def emitAgentSpawned(self, agent:Agent)->Event : 
         from kernel.Kernel import Kernel
         from services.EventService import EventService
-        Kernel.getInstance().getService(EventService).emit()
+        return Kernel.getInstance().getService(EventService).emit(event_type='event.AgentSpawned', source=str(agent.getID()), 
+                                                            data=f"Agent {agent.getName()} spawned")
 
 class Initialize:
     """Initialization event for agents"""
     @staticmethod
     def initialize(agent: Agent)-> None : 
-        print(f"Initialization of Agent {agent.getName()}")
+        print(f"Initialization of agent {agent.getName()}")
         agent.setState(AgentState.INITIALIZING)
         return None

@@ -7,12 +7,12 @@ from threading import Thread
 from typing import TYPE_CHECKING, Type
 
 from .AgentState import AgentState
-from space.Space import Space
 if TYPE_CHECKING :
     from capacities.EventCapacity import EventCapacity
     from capacities.LifeCycleCapacity import LifeCycleCapacity
     from services.LifeCycleService import Initialize
     from skills.Skill import Skill
+    from space.Space import Space
 
 class Agent(ABC) :
     
