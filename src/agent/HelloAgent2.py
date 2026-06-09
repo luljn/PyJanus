@@ -1,14 +1,16 @@
 from typing import Callable, Type
-from uuid import UUID
 from .Agent import Agent
+from .AgentState import AgentState
 from services.LifeCycleService import Initialize
-from io.sarl.sre.pysarlvm.lang.core import Lifecycle
+from space.Space import Space
+from skills.KillSkill import KillSkill
+#from io.sarl.sre.pysarlvm.lang.core import Lifecycle
 
 class HelloAgent2(Agent):
-    def __init__(self, id : UUID = None):
-        super().__init__(id)
+    def __init__(self):
+        super().__init__()
         # Define the mapping for all the function from the used capacities
-        self.killMe = lambda: self.getSkill(Type[Lifecycle]).killMe()
+        self.killMe = lambda: self.getSkill(Type[KillSkill]).killMe()
 
     # Nothing to generates for the SARL statement:
     # uses Lifecycle
@@ -16,10 +18,29 @@ class HelloAgent2(Agent):
     # This method is called by the Event Service
     def __guard_Initialize__(self, occurrence : Initialize, _event_handlers : list[Callable[[Initialize],None]]):
         it = occurrence
-        _event_handlers.append(self.__on_Initialize__)
+        _event_handlers.append(self._onInitialize)
 
-    def __on_Initialize__(self, occurrence : Initialize):
-        print("Hello World")
+    def _onInitialize(self, occurrence : Initialize = None) :
+        super()._onInitialize()
+        self.setState(AgentState.RUNNING)
+        print(f"[{self.getName()}] Hello World 2\n")
         # Call the function killMe defined in the capacity Lifecycle
-        self.killMe()
+        #self.killMe()
+    
+    def _onDestroy(self)-> None :
+        
+        pass
+    
+    def _receive(self)-> None :
+        
+        pass
+    
+    def _inSpace(self, space: Space)-> None :
+        
+        if self.__id in space.getParticipants() : return True
+        return False
+    
+    def _leave(self)-> None :
+        
+        pass
 

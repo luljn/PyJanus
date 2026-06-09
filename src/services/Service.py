@@ -2,6 +2,10 @@ from abc import ABC, abstractmethod
 import threading
 import asyncio
 from enum import Enum
+<<<<<<< HEAD
+=======
+from time import sleep
+>>>>>>> origin/branch3-thread_management
 from typing import Optional, Union
 
 class ServiceState(Enum):
@@ -14,6 +18,7 @@ class ServiceState(Enum):
 
 class Service(ABC):
     """Classe abstraite de base tolérante et robuste pour tous les services du système SARL"""
+<<<<<<< HEAD
     
     def __init__(self, name: Optional[str] = None):
         self._name = name if name is not None else self.__class__.__name__
@@ -46,6 +51,40 @@ class Service(ABC):
             else:
                 self._state = new_state
     
+=======
+    
+    def __init__(self, name: Optional[str] = None):
+        self._name = name if name is not None else self.__class__.__name__
+        self._state = ServiceState.CREATED
+        self._lock = threading.Lock()
+        self._thread: Optional[threading.Thread] = None
+        self._loop: Optional[asyncio.AbstractEventLoop] = None
+    
+    @property
+    def name(self) -> str:
+        return self._name
+    
+    @property
+    def state(self) -> ServiceState:
+        with self._lock:
+            if isinstance(self._state, str):
+                try:
+                    return ServiceState(self._state)
+                except ValueError:
+                    return ServiceState.FAILED
+            return self._state
+    
+    def _set_state(self, new_state: Union[ServiceState, str]):
+        with self._lock:
+            if isinstance(new_state, str):
+                try:
+                    self._state = ServiceState(new_state)
+                except ValueError:
+                    self._state = ServiceState.FAILED
+            else:
+                self._state = new_state
+    
+>>>>>>> origin/branch3-thread_management
     @abstractmethod
     async def startAsync(self) -> None:
         """Démarre le service de façon asynchrone"""
@@ -75,14 +114,26 @@ class Service(ABC):
         self._loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self._loop)
         self._loop.run_until_complete(self.startAsync())
+<<<<<<< HEAD
         
+=======
+    
+>>>>>>> origin/branch3-thread_management
     def stop_threaded(self):
         """Arrête le service de façon threadée"""
         if self._loop:
             asyncio.run_coroutine_threadsafe(self.stopAsync(), self._loop)
+<<<<<<< HEAD
 
     async def start_async(self):
         await self.startAsync()
 
+=======
+    
+    async def start_async(self):
+        self._thread = threading.Thread(target=sleep(1), daemon=True)
+        await self.startAsync()
+    
+>>>>>>> origin/branch3-thread_management
     async def stop_async(self):
         await self.stopAsync()

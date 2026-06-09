@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from typing import Dict, Optional, Any, Callable
 import uuid
 import asyncio
@@ -5,14 +6,40 @@ import threading
 from .Service import Service
 from agent.Agent import Agent
 from behavior.Behavior import Behavior
+=======
+# LifeCycleService
+
+from typing import Dict, Optional, Any, Callable, TYPE_CHECKING, Type
+import uuid
+import asyncio
+from importlib import import_module
+import threading
+
+from .Service import Service
+from agent.Agent import Agent
+from agent.AgentState import AgentState
+from behavior.Behavior import Behavior
+from event.Event import Event
+from space.Space import Space
+if TYPE_CHECKING :
+    from kernel.Kernel import Kernel
+    from services.EventService import EventService
+>>>>>>> origin/branch3-thread_management
 
 
 class LifeCycleService(Service):
     
+<<<<<<< HEAD
     def __init__(self, agent_concrete_class: Optional[type] = None):
         """Initialise le service de cycle de vie."""
         super().__init__()
         self._agents: Dict[str, Any] = {}          # ID externe -> agent
+=======
+    def __init__(self, agent_concrete_class: Optional[Agent] = None):
+        """Initialize the LifeCycleService."""
+        super().__init__()
+        self._agents: Dict[str, Agent] = {}          # ID externe -> agent
+>>>>>>> origin/branch3-thread_management
         self._agent_ids: Dict[Any, str] = {}       # agent -> ID externe
         self._behaviors: Dict[str, Any] = {}       # ID agent -> behavior
         self._agent_concrete_class = agent_concrete_class
@@ -23,12 +50,23 @@ class LifeCycleService(Service):
     async def startAsync(self) -> None:
         self._set_state("STARTING")
         self._running = True
+<<<<<<< HEAD
         self._set_state("RUNNING")
         print(f"[{self.name}] Service démarré")
+=======
+        #self._thread = threading.Thread(daemon=True)
+        self._thread.start()
+        self._set_state("RUNNING")
+        print(f"[{self.name}] Service started.")
+>>>>>>> origin/branch3-thread_management
     
     async def stopAsync(self) -> None:
         self._set_state("STOPPING")
         self._running = False
+<<<<<<< HEAD
+=======
+        print(f"[{self.name}] Service stoped")
+>>>>>>> origin/branch3-thread_management
         
         with self._lock:
             agent_ids = list(self._agents.keys())
@@ -36,6 +74,7 @@ class LifeCycleService(Service):
                 await self._kill_agent_async(agent_id)
         
         self._set_state("STOPPED")
+<<<<<<< HEAD
         print(f"[{self.name}] Service arrêté")
     
     def _call_agent_method(self, agent, private_method_name: str, fallback_name: str, *args, **kwargs):
@@ -56,6 +95,24 @@ class LifeCycleService(Service):
             return getattr(agent, fallback_name)(*args, **kwargs)
             
         raise AttributeError(f"L'agent {class_name} n'a pas de méthode {private_method_name} ou {fallback_name}")
+=======
+        print(f"[{self.name}] Service stopped")
+    
+    def _call_agent_method(self, agent, private_method_name: str, fallback_name: str, *args, **kwargs):
+        """Dynamically calls a method of the agent (protected or public)."""
+        class_name = agent.__class__.__name__
+        
+        # 1. Try with the protected name (ex: '_onInitialize')
+        if hasattr(agent, private_method_name):
+            return getattr(agent, private_method_name)(*args, **kwargs)
+            
+        # 2. Fallback on the alternative public method (ex: 'onInitialize')
+        if hasattr(agent, fallback_name):
+            return getattr(agent, fallback_name)(*args, **kwargs)
+            
+        # 3. If no one exists
+        raise AttributeError(f"[{self.name}] L'agent {class_name} n'a ni la méthode {private_method_name}, ni {fallback_name}")
+>>>>>>> origin/branch3-thread_management
     
     def _get_agent_attr(self, agent, attr_name: str, default=None):
         class_name = agent.__class__.__name__
@@ -82,6 +139,7 @@ class LifeCycleService(Service):
         setattr(agent, attr_name, value)
         return True
     
+<<<<<<< HEAD
     async def spawnAgent(self, name: Optional[str] = None, space=None, agent_class=None, 
                          auto_initialize: bool = True, **kwargs) -> str:
         if not self._running:
@@ -97,11 +155,29 @@ class LifeCycleService(Service):
             agent = agent_class_to_use()
         except TypeError as e:
             raise RuntimeError(f"[{self.name}] Échec d'instanciation de {agent_class_to_use}: {e}")
+=======
+    async def spawnAgent(self, name: Optional[str] = None, space:Space=None, agent_class:str=None, 
+                         auto_initialize: bool = True, **kwargs) -> None :
+        if not self._running:
+            raise RuntimeError(f"[{self.name}] Service is not in RUNNING state")
+        
+        agent_class_to_use = getattr(import_module(agent_class), agent_class.split('.')[-1])
+        if not agent_class_to_use:
+            raise RuntimeError(f"[{self.name}] No Agent class given.")
+        
+        try:
+            # Agent creation and initialization.
+            agent:Agent = agent_class_to_use()
+            Initialize.initialize(agent)
+        except TypeError as e:
+            raise RuntimeError(f"[{self.name}] Instantiation failed {agent_class_to_use}: {e}")
+>>>>>>> origin/branch3-thread_management
         
         if name:
             self._set_agent_attr(agent, 'name', name)
         if space:
             self._set_agent_attr(agent, 'space', space)
+<<<<<<< HEAD
             
         if auto_initialize:
             try:
@@ -118,6 +194,22 @@ class LifeCycleService(Service):
         print(f"[{self.name}] Agent spawné: {agent_name_display} (Ext ID: {external_id}, Int ID: {agent_internal_id})")
         await self._trigger_callbacks('agent_created', external_id, agent)
         return external_id
+=======
+        
+        if (not name and not space) :
+            from kernel.Kernel import Kernel
+            agent.register(Kernel.getInstance().getDefaultSpace())
+            #await self._trigger_callbacks('agent_created', agent.getID(), agent)
+        
+        if auto_initialize:
+            try:
+                self._call_agent_method(agent, '_onInitialize', 'onInitialize')
+                print(self.emitAgentSpawned(agent))
+            except AttributeError:
+                print(f"[{self.name}] Warning: agent has not onInitialize method")
+            
+        print(f"\n[{self.name}] Agent spawned-> Name: {agent.getName()} - ID: {agent.getID()} - Type: {agent.__class__.__name__}\n")
+>>>>>>> origin/branch3-thread_management
     
     async def killAgent(self, agent_id: str, auto_destroy: bool = True) -> bool:
         if not self._running:
@@ -132,9 +224,15 @@ class LifeCycleService(Service):
             
             if auto_destroy:
                 try:
+<<<<<<< HEAD
                     self._call_agent_method(agent, '__onDestroy', 'onDestroy')
                 except AttributeError:
                     print(f"[{self.name}] Warning: L'agent n'a pas de méthode onDestroy")
+=======
+                    self._call_agent_method(agent, '_onDestroy', 'onDestroy')
+                except AttributeError:
+                    print(f"[{self.name}] Warning: agent has not onDestroy method")
+>>>>>>> origin/branch3-thread_management
             
             if agent_id in self._behaviors:
                 behavior = self._behaviors[agent_id]
@@ -148,7 +246,11 @@ class LifeCycleService(Service):
                 del self._agent_ids[agent]
             
             agent_name = self._get_agent_attr(agent, 'name', "Unknown")
+<<<<<<< HEAD
             print(f"[{self.name}] Agent tué: {agent_name} (ID: {agent_id})")
+=======
+            print(f"[{self.name}] Agent Killed: {agent_name} (ID: {agent_id})")
+>>>>>>> origin/branch3-thread_management
             return True
             
     def getAgent(self, agent_id: str) -> Optional[Any]:
@@ -164,7 +266,11 @@ class LifeCycleService(Service):
             self._call_agent_method(agent, '__receive', 'receive', message)
             return True
         except AttributeError:
+<<<<<<< HEAD
             print(f"[{self.name}] Warning: Aucun point d'entrée de réception trouvé sur l'agent")
+=======
+            print(f"[{self.name}] Warning: No receiving entry point found on the agent")
+>>>>>>> origin/branch3-thread_management
             return False
 
     def getAgentName(self, agent_id: str) -> Optional[str]:
@@ -185,4 +291,23 @@ class LifeCycleService(Service):
                     else:
                         callback(*args, **kwargs)
                 except Exception as e:
+<<<<<<< HEAD
                     print(f"[{self.name}] Error in callback {event}: {e}")
+=======
+                    print(f"[{self.name}] Error in callback {event}: {e}")
+    
+    # To emit AgentSpawned event.
+    def emitAgentSpawned(self, agent:Agent)->Event : 
+        from kernel.Kernel import Kernel
+        from services.EventService import EventService
+        return Kernel.getInstance().getService(EventService).emit(event_type='event.AgentSpawned', source=str(agent.getID()), 
+                                                            data=f"Agent {agent.getName()} spawned")
+
+class Initialize:
+    """Initialization event for agents"""
+    @staticmethod
+    def initialize(agent: Agent)-> None : 
+        print(f"Initialization of agent {agent.getName()}")
+        agent.setState(AgentState.INITIALIZING)
+        return None
+>>>>>>> origin/branch3-thread_management

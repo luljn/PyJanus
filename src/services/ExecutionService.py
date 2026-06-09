@@ -6,6 +6,10 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Callable, Any, Optional
 from .Service import Service
+<<<<<<< HEAD
+=======
+from .Service import ServiceState
+>>>>>>> origin/branch3-thread_management
 @dataclass
 class Task:
     id: str
@@ -36,6 +40,10 @@ class ExecutionService(Service):
         self._worker_thread = threading.Thread(target=self._run_worker_loop, daemon=True)
         self._worker_thread.start()
         self._set_state("RUNNING")
+<<<<<<< HEAD
+=======
+        print(f"[{self.name}] Service started.")
+>>>>>>> origin/branch3-thread_management
     
     async def stopAsync(self) -> None:
         self._set_state("STOPPING")
@@ -43,6 +51,10 @@ class ExecutionService(Service):
         if self._worker_thread and self._worker_thread.is_alive():
             await asyncio.to_thread(self._worker_thread.join, timeout=5.0)
         self._set_state("STOPPED")
+<<<<<<< HEAD
+=======
+        print(f"[{self.name}] Service stoped"),  
+>>>>>>> origin/branch3-thread_management
     
     async def awaitRunning(self) -> None:
         """Attend que le service soit en état RUNNING"""

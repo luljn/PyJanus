@@ -1,27 +1,48 @@
 # Event Capacity
 
-from abc import ABC
+from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
 
 from .Capacity import Capacity
+from agent.Agent import Agent
+from event.Event import Event
+from space.Space import Space
+if TYPE_CHECKING : 
+    from skills.EventSkill import EventSkill
 
-class EventCapacity(ABC, Capacity) :
+"""
+    Capability allowing the agent to send and receive events
+    in the spaces in which it participates.
+"""
+class EventCapacity(Capacity) :
     
-    #
-    def __init__(self) :
+    """ def __init__(self,owner:Agent=None) :
         
-        super().__init__()
+        super().__init__(owner) """
     
-    #
-    def emit()-> None :
-        
+    """
+        Broadcasts an event to the agent's default space.
+        :param event: The instance of the event to broadcast.
+    """
+    @abstractmethod
+    def emit(self, user: Agent, event:Event)-> None :
         pass
     
-    #
-    def receive()-> None : 
-        
+    """ 
+        Processes an received event.
+    """
+    @abstractmethod
+    def receive(self, user: Agent, event:Event)-> None :
         pass
     
-    #
-    def wake()-> None : 
-        
+    """
+        It awakens the agent's behaviors that are awaiting this specific event.
+    """
+    @abstractmethod
+    def wake(self, user: Agent, event:Event)-> None :
         pass
+    
+    @staticmethod
+    def registerInSpace(user: Agent, space: Space)-> None :
+        from skills.EventSkill import EventSkill
+        user.getSkill(EventSkill).registerInSpace(user, space)

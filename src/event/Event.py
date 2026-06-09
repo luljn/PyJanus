@@ -1,23 +1,32 @@
 # class Event
 
-class Event() :
+from datetime import datetime
+from typing import Any
+from uuid import UUID, uuid4
+
+
+
+class Event :
     
-    #
-    def __init__(self) :
+    # Constructor.
+    def __init__(self, id:UUID=None, source: str=None, data:Any=None, timestamp: datetime=datetime.now()) :
         
-        pass
+        self.id = uuid4() if id is None else id
+        self.source = source
+        self.data = data
+        self.timestamp = timestamp
     
-    #
-    def getSource(self)-> None :
+    # To get the source of the event.
+    def getSource(self)-> str :
         
-        pass
+        return self.source
     
-    #
-    def setSource(self)-> None :
+    # To set the source of the event.
+    def setSource(self, source_:str)-> None :
         
-        pass
+        self.source = source_
     
     # toString equivalent in Python.
     def __str__(self)-> None :
         
-        return 'Event\n'
+        return f'Event with id {self.id} trigerred\n'
