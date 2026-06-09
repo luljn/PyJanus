@@ -11,8 +11,8 @@ class Skill(Capacity, ABC):
         Skill.referenceCount += 1
 
     @classmethod
-    def get_reference_count(cls):
-        return cls.referenceCount
+    def get_reference_count(self):
+        return self.referenceCount
 
     @abstractmethod
     def execute(self):
