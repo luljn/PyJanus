@@ -1,3 +1,4 @@
+from asyncio import create_task
 from typing import Callable
 from .Agent import Agent
 from .AgentState import AgentState
@@ -18,6 +19,7 @@ class HelloAgent(Agent) :
         super()._onInitialize(occurrence)
         self.setState(AgentState.RUNNING)
         print(f"[{self.getName()}] Hello World\n")
+        create_task(self.spawnAgent("agent.HelloAgent2"))
     
     def _onDestroy(self)-> None :
         

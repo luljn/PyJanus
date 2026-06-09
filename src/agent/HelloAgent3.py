@@ -1,3 +1,4 @@
+from asyncio import create_task, get_event_loop, ensure_future
 from typing import Callable, Type, Any
 from uuid import UUID
 from .Agent import Agent
@@ -20,7 +21,7 @@ class HelloAgent3(Agent):
         super().__init__(id)
         # Define the mapping for all the function from the used capacities
         self.killMe = lambda: self.getSkill(Type[LifeCycleService]).killMe()
-        self.spawn = lambda agent_type, *args: self.getSkill(Type[LifeCycleService]).spawn(agent_type, *args)
+        #self.spawn = lambda agent_type, *args: self.getSkill(Type[LifeCycleService]).spawn(agent_type, *args)
         self.emit = lambda event, filter=None: self.getSkill(Type[EventService]).emit(event, filter)
 
     # Nothing to generates for the SARL statement:
@@ -36,6 +37,8 @@ class HelloAgent3(Agent):
         self.setState(AgentState.RUNNING)
         print(f"[{self.getName()}] Hello World 3\n")
         #self.spawn(Type[HelloAgent4])
+        create_task(self.spawnAgent("agent.HelloAgent4"))
+        #create_task(self.__on_AgentSpawned__(AgentSpawned()))
 
     def __guard_AgentSpawned__(self, occurrence: AgentSpawned, _event_handlers: list[Callable[[AgentSpawned], None]]):
         it = occurrence

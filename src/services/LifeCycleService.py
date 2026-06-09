@@ -112,18 +112,20 @@ class LifeCycleService(Service):
         if space:
             self._set_agent_attr(agent, 'space', space)
         
+        if auto_initialize:
+            """ try:
+                self._call_agent_method(agent, '_onInitialize', 'onInitialize')
+                print(self.emitAgentSpawned(agent))
+            except AttributeError:
+                print(f"[{self.name}] Warning: agent has not onInitialize method") """
+            self._call_agent_method(agent, '_onInitialize', 'onInitialize')
+            print(self.emitAgentSpawned(agent))
+        
         if (not name and not space) :
             from kernel.Kernel import Kernel
             agent.register(Kernel.getInstance().getDefaultSpace())
             #await self._trigger_callbacks('agent_created', agent.getID(), agent)
         
-        if auto_initialize:
-            try:
-                self._call_agent_method(agent, '_onInitialize', 'onInitialize')
-                print(self.emitAgentSpawned(agent))
-            except AttributeError:
-                print(f"[{self.name}] Warning: agent has not onInitialize method")
-            
         print(f"\n[{self.name}] Agent spawned-> Name: {agent.getName()} - ID: {agent.getID()} - Type: {agent.__class__.__name__}\n")
     
     async def killAgent(self, agent_id: str, auto_destroy: bool = True) -> bool:

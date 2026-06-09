@@ -1,6 +1,7 @@
 # LifeCycle Capacity
 
 from abc import ABC, abstractmethod
+from asyncio import ensure_future
 
 from agent.Agent import Agent
 from .Capacity import Capacity
@@ -16,10 +17,11 @@ class LifeCycleCapacity(Capacity) :
     """
         Creates a new agent instance of a given type.
     """
-    @abstractmethod
-    def spawn(self, user: Agent, agent: Agent) -> None :
+    @staticmethod
+    async def spawn(user: Agent, agentType: str) -> None :
         
-        pass
+        from skills.SpawnSkill import SpawnSkill
+        await(user.getSkill(SpawnSkill).spawn(agentType))
     
     """
         Demands the arrest and destruction of the current agent.

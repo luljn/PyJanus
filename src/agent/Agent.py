@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 from abc import ABC, abstractmethod
+from asyncio import ensure_future, create_task
 from uuid import UUID, uuid4
 from threading import Thread
 from typing import TYPE_CHECKING, Type
@@ -67,11 +68,18 @@ class Agent(ABC) :
             if(isinstance(skill, skillClass)) :
                 return skill
     
-    # To register in a Space
+    # To register in a Space.
     def register(self, space: Space)-> None :
         
         from capacities.EventCapacity import EventCapacity
         EventCapacity.registerInSpace(self, space)
+    
+    # To spawn an agent.
+    async def spawnAgent(self, agentType:str) :
+        
+        from capacities.LifeCycleCapacity import LifeCycleCapacity
+        print(f"[{self.__name}] agent to spawn : {agentType}")
+        await(LifeCycleCapacity.spawn(self, agentType))
     
     @abstractmethod
     def _onInitialize(self, occurrence : Initialize = None) :
