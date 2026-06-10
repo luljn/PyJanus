@@ -9,7 +9,7 @@ from uuid import UUID, uuid4
 class Event :
     
     # Constructor.
-    def __init__(self, id:UUID=None, source: str=None, data:Any=None, timestamp: datetime=datetime.now()) :
+    def __init__(self, id:UUID = None, source:Any = None, data:Any = None, timestamp:datetime = datetime.now()) :
         
         self.id = uuid4() if id is None else id
         self.source = source
@@ -17,12 +17,12 @@ class Event :
         self.timestamp = timestamp
     
     # To get the source of the event.
-    def getSource(self)-> str :
+    def getSource(self)-> Any :
         
         return self.source
     
     # To set the source of the event.
-    def setSource(self, source_:str)-> None :
+    def setSource(self, source_:Any)-> None :
         
         self.source = source_
     
