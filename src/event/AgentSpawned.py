@@ -1,16 +1,8 @@
-# class AgentSpawned
-
 from .Event import Event
 
+class AgentSpawned(Event):
+    def __init__(self):
+        super().__init__(event_type="event.AgentSpawned")
 
-
-"""Event triggered when an agent is spawned"""
-class AgentSpawned(Event) :
-    
-    def __init__(self) :
-        
-        super().__init__()
-    
-    def __str__(self)-> None :
-        
-        return f'[Event_{self.id}] agent spawned trigerred\n'
+    def __str__(self):
+        return f'[Event_{self.id}] agent spawned triggered\n'

@@ -40,3 +40,8 @@ class Space :
     
     def getName(self)-> str :
         return self.__name
+    
+    def removeParticipant(self, agent: Agent) -> None:
+     if agent in self.__participants:
+        self.__participants.remove(agent)
+        print(f"[SPACE] {agent.getName()} removed from {self.getName()}")

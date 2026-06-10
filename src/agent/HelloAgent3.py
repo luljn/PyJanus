@@ -1,68 +1,49 @@
-from asyncio import create_task, get_event_loop, ensure_future
-from typing import Callable, Type, Any
+from asyncio import create_task
 from uuid import UUID
 from .Agent import Agent
 from .AgentState import AgentState
-from services.EventService import EventService
-from services.LifeCycleService import Initialize
-from services.LifeCycleService import LifeCycleService
-from .HelloAgent4 import HelloAgent4
 from event.AgentSpawned import AgentSpawned
 from event.MyEvent import MyEvent
-from space.Space import Space
-""" from io.sarl.sre.pysarlvm.lang.core import Agent
-from io.sarl.sre.pysarlvm.lang.core import AgentSpawned
-from io.sarl.sre.pysarlvm.lang.core import Initialize
-from io.sarl.sre.pysarlvm.lang.core import Lifecycle
-from io.sarl.sre.pysarlvm.lang.core import DefaultContextInteractions """
+from skills.EventSkill import EventSkill
+from skills.KillSkill import KillSkill
 
 class HelloAgent3(Agent):
-    def __init__(self, id : UUID = None):
+    def __init__(self, id: UUID = None):
         super().__init__(id)
-        # Define the mapping for all the function from the used capacities
-        self.killMe = lambda: self.getSkill(Type[LifeCycleService]).killMe()
-        #self.spawn = lambda agent_type, *args: self.getSkill(Type[LifeCycleService]).spawn(agent_type, *args)
-        self.emit = lambda event, filter=None: self.getSkill(Type[EventService]).emit(event, filter)
+        self.event_skill = self.getSkill(EventSkill)
+        self.kill_skill = self.getSkill(KillSkill)
 
-    # Nothing to generates for the SARL statement:
-    # uses Lifecycle
-
-    # This method is called by the Event Service
-    def __guard_Initialize__(self, occurrence : Initialize, _event_handlers : list[Callable[[Initialize],None]]):
-        it = occurrence
-        _event_handlers.append(self._onInitialize)
-
-    def _onInitialize(self, occurrence : Initialize = None):
+    def _onInitialize(self, occurrence=None):
         super()._onInitialize()
         self.setState(AgentState.RUNNING)
-        print(f"[{self.getName()}] Hello World 3\n")
-        #self.spawn(Type[HelloAgent4])
+        print(f"[{self.getName()}] Hello World 3")
+
+        from kernel.Kernel import Kernel
+        from services.EventService import EventService
+        event_service = Kernel.getInstance().getService(EventService)
+        self.listener_id = event_service.registerListener(
+            "event.AgentSpawned",
+            self._on_agent_spawned,
+            self.getName()
+        )
+
         create_task(self.spawnAgent("agent.HelloAgent4"))
-        #create_task(self.__on_AgentSpawned__(AgentSpawned()))
 
-    def __guard_AgentSpawned__(self, occurrence: AgentSpawned, _event_handlers: list[Callable[[AgentSpawned], None]]):
-        it = occurrence
-        _event_handlers.append(self.__on_AgentSpawned__)
+    def _on_agent_spawned(self, event: AgentSpawned):
+        # Ignore the event if it corresponds to this agent's own creation
+        if event.getSource() == str(self.getID()):
+            print(f"[{self.getName()}] Ignoring my own AgentSpawned event")
+            return
+        print(f"[{self.getName()}] Received AgentSpawned event for spawned agent -> {event}")
+        my_event = MyEvent(value1=42, value2="Hello from H3")
+        self.event_skill.emit(my_event, self)
+        self.kill_skill.killme(self)
 
-    def __on_AgentSpawned__(self, occurrence: AgentSpawned):
-        print("The other agent was spawned")
-        #self.emit(MyEvent())
-        #self.killMe()
-    
-    def _onDestroy(self)-> None :
-        
+    def _onDestroy(self):
         pass
-    
-    def _receive(self)-> None :
-        
+    def _receive(self):
         pass
-    
-    def _inSpace(self, space: Space)-> None :
-        
-        if self.__id in space.getParticipants() : return True
+    def _inSpace(self, space):
         return False
-    
-    def _leave(self)-> None :
-        
+    def _leave(self):
         pass
-

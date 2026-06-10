@@ -1,33 +1,22 @@
-# Kill Skill
-
+import asyncio
 from .Skill import Skill
 from agent.Agent import Agent
 from capacities.LifeCycleCapacity import LifeCycleCapacity
+from kernel.Kernel import Kernel
+from services.LifeCycleService import LifeCycleService
 
-class KillSkill(Skill, LifeCycleCapacity) :
-    
-    #
-    def __init__(self) :
-        
+class KillSkill(Skill, LifeCycleCapacity):
+    def __init__(self):
         super().__init__()
-    
-        """
-        Creates a new agent instance of a given type.
-    """
-    def spawn(self, user: Agent, agent: Agent) -> None :
-        
+
+    async def spawn(self, user: Agent, agent: Agent) -> None:
         pass
-    
-    """
-        Demands the arrest and destruction of the current agent.
-    """
-    def killme(self, user: Agent) -> None :
-        
+
+    def killme(self, user: Agent) -> None:
+        agent_id = str(user.getID())
+        loop = asyncio.get_event_loop()
+        loop.create_task(Kernel.getInstance().getService(LifeCycleService).killAgent(agent_id))
+        print(f"[SKILL] {user.getName()} requested suicide")
+
+    def spawn_in_context(self, user: Agent, agent: Agent, context_id, *args) -> None:
         pass
-    
-    """ 
-        Creates an agent in a specific context.
-    """
-    def spawn_in_context(self, user: Agent, agent: Agent, context_id, *args) -> None :
-        
-        pass 
