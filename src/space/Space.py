@@ -14,7 +14,7 @@ class Space :
         self.__name = name if name is not None else f'Space_{self.__id}'
         self.__participants: list[Agent] = []
     
-    # Get all the participants of the space
+    # Get all the participants of the space.
     def getParticipants(self)-> list[Agent] :
         
         return self.__participants
@@ -34,9 +34,10 @@ class Space :
                 
                 participant._receive()
     
-    # Getters
-    def getID(self)-> UUID :
-        return self.__id
+    # To leave the space.
+    def leave(self, agent:Agent)-> None : self.getParticipants().remove(agent)
     
-    def getName(self)-> str :
-        return self.__name
+    # Getters
+    def getID(self)-> UUID : return self.__id
+    
+    def getName(self)-> str : return self.__name

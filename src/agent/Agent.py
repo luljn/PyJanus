@@ -54,7 +54,7 @@ class Agent(ABC) :
     
     def _leave(self, space: Space)-> None :
         
-        if self._inSpace(self, space) : space
+        if self._inSpace(space) : space.leave(self)
     
     # To get a skill with its Type.
     def getSkill(self, skillClass:Type[Skill])-> Skill :
