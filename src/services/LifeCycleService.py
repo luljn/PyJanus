@@ -102,8 +102,9 @@ class LifeCycleService(Service):
         
         try:
             # Agent creation and initialization.
-            agent:Agent = agent_class_to_use()
-            Initialize.initialize(agent)
+            agent:Agent = agent_class_to_use() 
+            print(f"[INFO] Agent {agent.getName()} created")
+            Initialize.initialize(agent, self)
         except TypeError as e:
             raise RuntimeError(f"[{self.name}] Instantiation failed {agent_class_to_use}: {e}")
         
@@ -112,19 +113,13 @@ class LifeCycleService(Service):
         if space:
             self._set_agent_attr(agent, 'space', space)
         
-        if auto_initialize:
-            """ try:
-                self._call_agent_method(agent, '_onInitialize', 'onInitialize')
-                print(self.emitAgentSpawned(agent))
-            except AttributeError:
-                print(f"[{self.name}] Warning: agent has not onInitialize method") """
+        """ if auto_initialize :
             self._call_agent_method(agent, '_onInitialize', 'onInitialize')
-            print(self.emitAgentSpawned(agent))
+            print(self.emitAgentSpawned(agent)) """
         
         if (not name and not space) :
             from kernel.Kernel import Kernel
             agent.register(Kernel.getInstance().getDefaultSpace())
-            #await self._trigger_callbacks('agent_created', agent.getID(), agent)
         
         print(f"\n[{self.name}] Agent spawned-> Name: {agent.getName()} - ID: {agent.getID()} - Type: {agent.__class__.__name__}\n")
     
@@ -206,7 +201,9 @@ class LifeCycleService(Service):
 class Initialize:
     """Initialization event for agents"""
     @staticmethod
-    def initialize(agent: Agent)-> None : 
+    def initialize(agent: Agent, service:LifeCycleService)-> None : 
         print(f"Initialization of agent {agent.getName()}")
         agent.setState(AgentState.INITIALIZING)
+        service._call_agent_method(agent, '_onInitialize', 'onInitialize')
+        print(service.emitAgentSpawned(agent))
         return None

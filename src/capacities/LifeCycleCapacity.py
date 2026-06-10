@@ -1,7 +1,6 @@
 # LifeCycle Capacity
 
 from abc import ABC, abstractmethod
-from asyncio import ensure_future
 
 from agent.Agent import Agent
 from .Capacity import Capacity

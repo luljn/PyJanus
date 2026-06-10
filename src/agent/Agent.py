@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from asyncio import ensure_future, create_task
+from asyncio import create_task
 from uuid import UUID, uuid4
 from threading import Thread
 from typing import TYPE_CHECKING, Type
@@ -17,7 +17,6 @@ if TYPE_CHECKING :
 
 class Agent(ABC) :
     
-    @abstractmethod
     def __init__(self, id: UUID = None) :
         
         self.__id: UUID = uuid4() if id is None else id
@@ -32,9 +31,49 @@ class Agent(ABC) :
         from skills.KillSkill import KillSkill
         from skills.SpawnSkill import SpawnSkill
         self.__skills.extend([EventSkill(), KillSkill(), SpawnSkill()])
+    
+    @abstractmethod
+    def _onInitialize(self, occurrence : Initialize = None) :
         
-        # 
-        print(f"[INFO] Agent {self.__name} created")
+        self.__thread = Thread(daemon=True)
+        self.__thread.start()
+    
+    @abstractmethod
+    def _onDestroy(self)-> None :
+        
+        raise NotImplementedError("Not implemented !")
+    
+    def _receive(self)-> None :
+        
+        raise NotImplementedError("Not implemented !")
+    
+    def _inSpace(self, space: Space)-> bool :
+        
+        if self in space.getParticipants() : return True
+        return False
+    
+    def _leave(self, space: Space)-> None :
+        
+        if self._inSpace(self, space) : space
+    
+    # To get a skill with its Type.
+    def getSkill(self, skillClass:Type[Skill])-> Skill :
+        for skill in self.__skills : 
+            if(isinstance(skill, skillClass)) :
+                return skill
+    
+    # To register in a Space.
+    def register(self, space: Space)-> None :
+        
+        from capacities.EventCapacity import EventCapacity
+        EventCapacity.registerInSpace(self, space)
+    
+    # To spawn an agent.
+    def spawnAgent(self, agentType:str) :
+        
+        from capacities.LifeCycleCapacity import LifeCycleCapacity
+        print(f"[{self.__name}] agent to spawn : {agentType}")
+        create_task(LifeCycleCapacity.spawn(self, agentType))
     
     # Getters
     def getID(self) -> int :
@@ -61,54 +100,3 @@ class Agent(ABC) :
     def setSpace(self, space: Space)-> None :
         
         self.__space = space
-    
-    # To get a skill with its Type.
-    def getSkill(self, skillClass:Type[Skill])-> Skill :
-        for skill in self.__skills : 
-            if(isinstance(skill, skillClass)) :
-                return skill
-    
-    # To register in a Space.
-    def register(self, space: Space)-> None :
-        
-        from capacities.EventCapacity import EventCapacity
-        EventCapacity.registerInSpace(self, space)
-    
-    # To spawn an agent.
-    async def spawnAgent(self, agentType:str) :
-        
-        from capacities.LifeCycleCapacity import LifeCycleCapacity
-        print(f"[{self.__name}] agent to spawn : {agentType}")
-        await(LifeCycleCapacity.spawn(self, agentType))
-    
-    @abstractmethod
-    def _onInitialize(self, occurrence : Initialize = None) :
-        
-        #self.__state = AgentState.INITIALIZING
-        #raise NotImplementedError("Not implemented !")
-        self.__thread = Thread(target=self.test, daemon=True)
-        self.__thread.start()
-    
-    @abstractmethod
-    def _onDestroy(self)-> None :
-        
-        raise NotImplementedError("Not implemented !")
-    
-    @abstractmethod
-    def _receive(self)-> None :
-        
-        raise NotImplementedError("Not implemented !")
-    
-    @abstractmethod
-    def _inSpace(self, space: Space)-> bool :
-        
-        raise NotImplementedError("Not implemented !")
-    
-    @abstractmethod
-    def _leave(self)-> None :
-        
-        raise NotImplementedError("Not implemented !")
-    
-    #
-    def test(self) :
-        pass 

@@ -30,17 +30,3 @@ class HelloAgent2(Agent):
     def _onDestroy(self)-> None :
         
         pass
-    
-    def _receive(self)-> None :
-        
-        pass
-    
-    def _inSpace(self, space: Space)-> None :
-        
-        if self.__id in space.getParticipants() : return True
-        return False
-    
-    def _leave(self)-> None :
-        
-        pass
-
