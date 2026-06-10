@@ -24,3 +24,7 @@ class MyEvent(Event) :
     def value2(self, v : str) :
         
         self.__value2 = v
+    
+    def __str__(self)-> None :
+        
+        return f'Event_{self.__class__.__name__} with id {self.id} trigerred\n'
