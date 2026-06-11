@@ -14,18 +14,10 @@ class HelloAgent4(Agent):
         self.setState(AgentState.RUNNING)
         print(f"[{self.getName()}] Hello World 4")
 
-        from kernel.Kernel import Kernel
-        from services.EventService import EventService
-        event_service = Kernel.getInstance().getService(EventService)
-        self.listener_id = event_service.registerListener(
-            "event.MyEvent",
-            self._on_my_event,
-            self.getName()
-        )
-
-    def _on_my_event(self, event: MyEvent):
-        print(f"[{self.getName()}] Received MyEvent: value1={event.value1}, value2={event.value2}")
-        self.kill_skill.killme(self)
+    def onReceiveEvent(self, event):
+        if isinstance(event, MyEvent):
+            print(f"[{self.getName()}] Received MyEvent: value1={event.value1}, value2={event.value2}")
+            self.kill_skill.killme(self)
 
     def _onDestroy(self):
         pass

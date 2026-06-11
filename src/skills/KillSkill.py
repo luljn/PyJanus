@@ -1,4 +1,5 @@
 import asyncio
+import threading
 from .Skill import Skill
 from agent.Agent import Agent
 from capacities.LifeCycleCapacity import LifeCycleCapacity
@@ -14,9 +15,10 @@ class KillSkill(Skill, LifeCycleCapacity):
 
     def killme(self, user: Agent) -> None:
         agent_id = str(user.getID())
-        loop = asyncio.get_event_loop()
-        loop.create_task(Kernel.getInstance().getService(LifeCycleService).killAgent(agent_id))
-        print(f"[SKILL] {user.getName()} requested suicide")
+        def _run():
+            asyncio.run(Kernel.getInstance().getService(LifeCycleService).killAgent(agent_id))
+        threading.Thread(target=_run, daemon=True).start()
+        print(f"[SKILL] {user.getName()} requested suicide (kill thread started)")
 
     def spawn_in_context(self, user: Agent, agent: Agent, context_id, *args) -> None:
         pass

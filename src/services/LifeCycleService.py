@@ -1,15 +1,15 @@
-# LifeCycleService.py 
+# services/LifeCycleService.py – FINAL VERSION with directory unregistration print
+
 from typing import Dict, Optional, Any, Callable, TYPE_CHECKING
 import asyncio
 from importlib import import_module
 import threading
 
-from .Service import Service
+from .Service import Service, ServiceState
 from agent.Agent import Agent
 from agent.AgentState import AgentState
 from event.Event import Event
 from space.Space import Space
-from .Service import Service, ServiceState   # update existing import
 
 if TYPE_CHECKING:
     from kernel.Kernel import Kernel
@@ -30,7 +30,7 @@ class LifeCycleService(Service):
     async def startAsync(self) -> None:
         self._set_state("STARTING")
         self._running = True
-        self._set_state("RUNNING")
+        self._set_state(ServiceState.RUNNING)
         print(f"[{self.name}] Service started.")
     
     async def stopAsync(self) -> None:
@@ -41,7 +41,7 @@ class LifeCycleService(Service):
             agent_ids = list(self._agents.keys())
             for agent_id in agent_ids:
                 await self._kill_agent_async(agent_id, auto_destroy=True)
-        self._set_state("STOPPED")
+        self._set_state(ServiceState.STOPPED)
         print(f"[{self.name}] Service stopped")
     
     # ---------- Helper methods ----------
@@ -92,14 +92,12 @@ class LifeCycleService(Service):
         if not self._running:
             raise RuntimeError(f"[{self.name}] Service is not in RUNNING state")
         
-        # agent_class is like "agent.HelloAgent3"
-        # Import the module (e.g., agent.HelloAgent3)
+        # Import the agent class
         try:
             module = import_module(agent_class)
         except ImportError as e:
             raise RuntimeError(f"[{self.name}] Cannot import module '{agent_class}': {e}")
         
-        # Extract class name from the end (e.g., "HelloAgent3")
         class_name = agent_class.split('.')[-1]
         agent_class_to_use = getattr(module, class_name, None)
         if agent_class_to_use is None:
@@ -109,25 +107,31 @@ class LifeCycleService(Service):
         
         try:
             agent: Agent = agent_class_to_use()
-            Initialize.initialize(agent)
+            Initialize.initialize(agent)   # sets state to INITIALIZING
         except TypeError as e:
             raise RuntimeError(f"[{self.name}] Instantiation failed {agent_class_to_use}: {e}")
         
+        # Apply optional name/space
         if name:
             self._set_agent_attr(agent, 'name', name)
         if space:
             self._set_agent_attr(agent, 'space', space)
         
-        self._add_agent(agent)
-        
-        if auto_initialize:
-            self._call_agent_method(agent, '_onInitialize', 'onInitialize')
-            self.emitAgentSpawned(agent)
-        
+        # Register the agent in the default space BEFORE _onInitialize
         if not name and not space:
             from kernel.Kernel import Kernel
             default_space = Kernel.getInstance().getDefaultSpace()
-            agent.register(default_space)
+            agent.register(default_space)   # this adds agent to space participants
+        
+        # Add to this service's internal registry
+        self._add_agent(agent)
+        
+        # Now call the agent's initialization method
+        if auto_initialize:
+            self._call_agent_method(agent, '_onInitialize', 'onInitialize')
+        
+        # Finally, emit AgentSpawned event (now the agent is already in the space)
+        self.emitAgentSpawned(agent)
         
         print(f"\n[{self.name}] Agent spawned -> Name: {agent.getName()} - ID: {agent.getID()} - Type: {agent.__class__.__name__}\n")
     
@@ -144,18 +148,22 @@ class LifeCycleService(Service):
                 return False
             agent = self._agents[agent_id]
         
+        # 1. Unregister from DirectoryService
         from kernel.Kernel import Kernel
         from services.DirectoryService import DirectoryService
         dir_svc = Kernel.getInstance().getService(DirectoryService)
         if dir_svc and dir_svc.HasAgent(agent):
             dir_svc.unregister_agent(agent_id)
+            # ADDED: print confirmation (as requested)
             print(f"[DIRECTORY] Unregistered agent {agent.getName()} (ID: {agent_id})")
         
+        # 2. Remove from its Space
         space = self._get_agent_attr(agent, 'space', None)
         if space and hasattr(space, 'removeParticipant'):
             space.removeParticipant(agent)
-            print(f"[SPACE] {agent.getName()} left {space.getName()}")
+            print(f"[SPACE] Removed {agent.getName()} from {space.getName()}")
         
+        # 3. Call agent's destroy hook
         if auto_destroy:
             try:
                 self._call_agent_method(agent, '_onDestroy', 'onDestroy')
@@ -163,6 +171,7 @@ class LifeCycleService(Service):
             except AttributeError:
                 print(f"[{self.name}] Warning: agent {agent.getName()} has no _onDestroy method")
         
+        # 4. Remove from behaviors
         if agent_id in self._behaviors:
             behavior = self._behaviors[agent_id]
             if hasattr(behavior, 'onStop'):
@@ -172,7 +181,9 @@ class LifeCycleService(Service):
                     print(f"Error stopping behavior: {e}")
             del self._behaviors[agent_id]
         
+        # 5. Remove from internal maps
         self._remove_agent(agent_id)
+        
         print(f"[{self.name}] Agent Killed: {agent.getName()} (ID: {agent_id})")
         return True
     
@@ -192,11 +203,11 @@ class LifeCycleService(Service):
         except AttributeError:
             print(f"[{self.name}] Warning: No receiving entry point found on the agent")
             return False
-
+    
     def getAgentName(self, agent_id: str) -> Optional[str]:
         agent = self.getAgent(agent_id)
         return self._get_agent_attr(agent, 'name') if agent else None
-
+    
     def registerCallback(self, event: str, callback: Callable):
         if event not in self._callbacks:
             self._callbacks[event] = []
@@ -214,17 +225,16 @@ class LifeCycleService(Service):
                     print(f"[{self.name}] Error in callback {event}: {e}")
     
     def emitAgentSpawned(self, agent: Agent) -> Optional[Event]:
-       from kernel.Kernel import Kernel
-       from services.EventService import EventService
-       event_svc = Kernel.getInstance().getService(EventService)
-       if event_svc and event_svc.state == ServiceState.RUNNING:
-        print(f"[{self.name}] Emitting AgentSpawned for {agent.getName()}")
-        return event_svc.emit(event_type='event.AgentSpawned',
-                              source=str(agent.getID()),
-                              data=f"Agent {agent.getName()} spawned")
-       else:
-        print(f"[{self.name}] EventService not ready (state={event_svc.state if event_svc else None})")
-        return None
+        from kernel.Kernel import Kernel
+        from services.EventService import EventService
+        event_svc = Kernel.getInstance().getService(EventService)
+        if event_svc and event_svc.state == ServiceState.RUNNING:
+            return event_svc.emit(event_type='event.AgentSpawned',
+                                  source=str(agent.getID()),
+                                  data=f"Agent {agent.getName()} spawned")
+        else:
+            print(f"[{self.name}] EventService not ready (state={event_svc.state if event_svc else None})")
+            return None
 
 
 class Initialize:
