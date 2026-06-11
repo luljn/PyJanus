@@ -98,8 +98,9 @@ class Main :
                 kernel.stop()
                 stopFlag['active'] = True
                 mainThread.join()
-            sleep(10)
-            kernel.getService(DirectoryService).getDictAgents().clear()
+            sleep(1)
+            #sleep(10)
+            #kernel.getService(DirectoryService).getDictAgents().clear()
             continue
         
         """ sleep(5)
