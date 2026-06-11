@@ -27,4 +27,4 @@ class MyEvent(Event) :
     
     def __str__(self)-> None :
         
-        return f'Event_{self.__class__.__name__} with id {self.id} trigerred\n'
+        return f'Event_{self.__class__.__name__}_{self.id} trigerred\ndata : {self.data}\n'

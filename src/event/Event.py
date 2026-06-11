@@ -29,4 +29,7 @@ class Event :
     # toString equivalent in Python.
     def __str__(self)-> None :
         
-        return f'Event with id {self.id} trigerred\n'
+        return f'Event_{self.id} trigerred\ndata : {self.data}\n'
+    
+    # To get the ID.
+    def getID(self)->UUID : return self.id
