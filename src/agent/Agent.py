@@ -8,9 +8,8 @@ from threading import Thread
 from typing import TYPE_CHECKING, Type
 
 from .AgentState import AgentState
+from event.Event import Event
 if TYPE_CHECKING :
-    from capacities.EventCapacity import EventCapacity
-    from capacities.LifeCycleCapacity import LifeCycleCapacity
     from services.LifeCycleService import Initialize
     from skills.Skill import Skill
     from space.Space import Space
@@ -43,7 +42,7 @@ class Agent(ABC) :
         
         raise NotImplementedError("Not implemented !")
     
-    def _receive(self)-> None :
+    def _receive(self, event:Event)-> None :
         
         raise NotImplementedError("Not implemented !")
     
@@ -75,6 +74,11 @@ class Agent(ABC) :
         print(f"[{self.__name}] agent to spawn : {agentType}")
         create_task(LifeCycleCapacity.spawn(self, agentType))
     
+    # To emit an event.
+    def emit(self, eventType:Event)->None :
+        from capacities.EventCapacity import EventCapacity
+        EventCapacity.emitEvent(self, eventType)
+        
     # Getters
     def getID(self) -> int :
         
