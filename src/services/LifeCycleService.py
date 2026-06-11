@@ -121,6 +121,8 @@ class LifeCycleService(Service):
             from kernel.Kernel import Kernel
             agent.register(Kernel.getInstance().getDefaultSpace())
         
+        from services.EventService import EventService
+        Kernel.getInstance().getService(EventService).emit(self.emitAgentSpawned(agent))
         print(f"\n[{self.name}] Agent spawned-> Name: {agent.getName()} - ID: {agent.getID()} - Type: {agent.__class__.__name__}\n")
     
     async def killAgent(self, agent_id: str, auto_destroy: bool = True) -> bool:
@@ -194,9 +196,12 @@ class LifeCycleService(Service):
     # To emit AgentSpawned event.
     def emitAgentSpawned(self, agent:Agent)->Event : 
         from kernel.Kernel import Kernel
-        from services.EventService import EventService
-        return Kernel.getInstance().getService(EventService).emit(event_type='event.AgentSpawned', source=str(agent.getID()), 
-                                                            data=f"Agent {agent.getName()} spawned")
+        from event.AgentSpawned import AgentSpawned
+        """ return Kernel.getInstance().getService(EventService).emit(event_type='event.AgentSpawned', source=self, 
+                                                            data=f"Agent {agent.getName()} was spawned") """
+        event:AgentSpawned = AgentSpawned(source=self, data=f"Agent {agent.getName()} was spawned")
+        print(event)
+        return event
 
 class Initialize:
     """Initialization event for agents"""
@@ -205,5 +210,5 @@ class Initialize:
         print(f"Initialization of agent {agent.getName()}")
         agent.setState(AgentState.INITIALIZING)
         service._call_agent_method(agent, '_onInitialize', 'onInitialize')
-        print(service.emitAgentSpawned(agent))
+        #print(service.emitAgentSpawned(agent))
         return None

@@ -17,8 +17,8 @@ class HelloAgent3(Agent):
         super().__init__(id)
         # Define the mapping for all the function from the used capacities
         self.killMe = lambda: self.getSkill(Type[LifeCycleService]).killMe()
-        self.spawn = lambda agent_type, *args: self.getSkill(Type[SpawnSkill]).spawn(agent_type, *args)
-        self.emit = lambda event, filter=None: self.getSkill(Type[EventSkill]).emit(event, filter)
+        self.spawn = lambda agent_type, *args: self.getSkill(Type[SpawnSkill]).spawnAgent(agent_type, *args)
+        #self.emit = lambda event, filter=None: self.getSkill(EventSkill).emit(event, filter)
     
     # Nothing to generates for the SARL statement:
     # uses Lifecycle
@@ -33,8 +33,8 @@ class HelloAgent3(Agent):
         self.setState(AgentState.RUNNING)
         print(f"[{self.getName()}] Hello World 3\n")
         #self.spawn(Type[HelloAgent4])
-        self.spawnAgent("agent.HelloAgent4")
-        self.__on_AgentSpawned__(AgentSpawned())
+        self.spawnAgent(HelloAgent4.__module__)
+        self.__on_AgentSpawned__(AgentSpawned(source=self, data=f"[Agent {self.getName()}] has spawned {HelloAgent4.__module__} Type"))
 
     def __guard_AgentSpawned__(self, occurrence: AgentSpawned, _event_handlers: list[Callable[[AgentSpawned], None]]):
         it = occurrence
@@ -42,8 +42,9 @@ class HelloAgent3(Agent):
 
     def __on_AgentSpawned__(self, occurrence: AgentSpawned):
         print("The other agent was spawned")
-        """ self.emit(occurrence)
-        self.killMe() """
+        print(occurrence)
+        self.emit(occurrence)
+        #self.killMe()
     
     def _onDestroy(self)-> None :
         

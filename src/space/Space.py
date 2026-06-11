@@ -24,15 +24,17 @@ class Space :
         
         self.__participants.append(agent)
     
-    # To emit an event in the space.
-    def emit(self, event: Event)-> None :
+    # To send an event in the space.
+    def send(self, event: Event)-> None :
         
         # To ensure at least one agent will get the event.
         if self.getParticipants() :
             
             for participant in self.getParticipants() :
+                pass
+                #participant._receive(event)
                 
-                participant._receive()
+        print(f"Event {event.__class__.__name__}_{event.getID()} sent to space {self.getName()}\n")
     
     # To leave the space.
     def leave(self, agent:Agent)-> None : self.getParticipants().remove(agent)
