@@ -91,21 +91,27 @@ class EventService(Service) :
         return count
     
     # To emit an event
-    def emit(self, event_type: str = "event.Event", source: str = None, data: Any = None) -> Event :
+    def emit(self, event:Event, source:Any = None, data:Any = None) -> Event :
         """Emits an event thread-safely and asynchronously."""
-        event_class_to_use = getattr(import_module(event_type), event_type.split('.')[-1])
-        event:Event = event_class_to_use()
+        from kernel.Kernel import Kernel
+        """event_class_to_use = getattr(import_module(event_type), event_type.split('.')[-1])
+        event:Event = event_class_to_use(source=source,data=data) """
+        
+        if source is not None : event.setSource(source)
+        if data is not None : event.setData(data)
         
         if self._running and self._event_queue is not None:
             # Allows inserting from any original asynchronous thread or loop
             try:
                 loop = asyncio.get_running_loop()
                 loop.call_soon_threadsafe(self._event_queue.put_nowait, event)
+                #if(source is not None and issubclass(source, Agent)) : source.getSpace().emit()
             except RuntimeError:
                 # If no loop is active in the current thread
                 if self._loop and self._loop.is_running():
                     self._loop.call_soon_threadsafe(self._event_queue.put_nowait, event)
-        return event
+        Kernel.getInstance().getDefaultSpace().send(event)
+        #return event
         
     async def _dispatch_loop(self) -> None:
         """Boucle de routage interne distribuant les événements aux écouteurs enregistrés."""
@@ -134,5 +140,6 @@ class EventService(Service) :
         
         if agent in space.getParticipants() : return False
         space.addParticipant(agent)
-        print(f"Agent {agent.getName()} registered to space {space.getName()}")
+        agent.setSpace(space)
+        print(f"Agent {agent.getName()} registered to space {space.getName()}\n")
         return True

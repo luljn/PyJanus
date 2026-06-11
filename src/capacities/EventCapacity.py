@@ -24,9 +24,10 @@ class EventCapacity(Capacity) :
         Broadcasts an event to the agent's default space.
         :param event: The instance of the event to broadcast.
     """
-    @abstractmethod
-    def emit(self, user: Agent, event:Event)-> None :
-        pass
+    @staticmethod
+    def emitEvent(user: Agent, eventType:Event)-> None :
+        from skills.EventSkill import EventSkill
+        user.getSkill(EventSkill).emit(user, eventType)
     
     """ 
         Processes an received event.
@@ -42,7 +43,18 @@ class EventCapacity(Capacity) :
     def wake(self, user: Agent, event:Event)-> None :
         pass
     
+    """
+        To register an agent in a space.
+    """
     @staticmethod
     def registerInSpace(user: Agent, space: Space)-> None :
+        from skills.EventSkill import EventSkill
+        user.getSkill(EventSkill).registerInSpace(user, space)
+    
+    """
+        To unregister an agent from a space.
+    """
+    @staticmethod
+    def unregisterFromSpace(user: Agent, space: Space)-> None :
         from skills.EventSkill import EventSkill
         user.getSkill(EventSkill).registerInSpace(user, space)
