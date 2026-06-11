@@ -27,14 +27,15 @@ class Space :
     # To send an event in the space.
     def send(self, event: Event)-> None :
         
+        print(f"Event {event.__class__.__name__}_{event.getID()} sent to space {self.getName()}\n")
+        
         # To ensure at least one agent will get the event.
         if self.getParticipants() :
             
             for participant in self.getParticipants() :
-                pass
-                #participant._receive(event)
-                
-        print(f"Event {event.__class__.__name__}_{event.getID()} sent to space {self.getName()}\n")
+                #pass
+                if not participant.getName() in event.data :
+                    participant._receive(event)
     
     # To leave the space.
     def leave(self, agent:Agent)-> None : self.getParticipants().remove(agent)

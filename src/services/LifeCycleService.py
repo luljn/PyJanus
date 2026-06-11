@@ -200,7 +200,7 @@ class LifeCycleService(Service):
         """ return Kernel.getInstance().getService(EventService).emit(event_type='event.AgentSpawned', source=self, 
                                                             data=f"Agent {agent.getName()} was spawned") """
         event:AgentSpawned = AgentSpawned(source=self, data=f"Agent {agent.getName()} was spawned")
-        print(event)
+        #print(event)
         return event
 
 class Initialize:

@@ -110,6 +110,7 @@ class EventService(Service) :
                 # If no loop is active in the current thread
                 if self._loop and self._loop.is_running():
                     self._loop.call_soon_threadsafe(self._event_queue.put_nowait, event)
+        print(event)
         Kernel.getInstance().getDefaultSpace().send(event)
         #return event
         

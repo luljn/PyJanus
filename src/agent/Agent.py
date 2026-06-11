@@ -44,7 +44,8 @@ class Agent(ABC) :
     
     def _receive(self, event:Event)-> None :
         
-        raise NotImplementedError("Not implemented !")
+        #raise NotImplementedError("Not implemented !")
+        print(f"[{self.getName()}] I received the event Event_{event.getID()}\n")
     
     def _inSpace(self, space: Space)-> bool :
         

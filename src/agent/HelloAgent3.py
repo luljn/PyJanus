@@ -42,7 +42,6 @@ class HelloAgent3(Agent):
 
     def __on_AgentSpawned__(self, occurrence: AgentSpawned):
         print("The other agent was spawned")
-        print(occurrence)
         self.emit(occurrence)
         #self.killMe()
     
