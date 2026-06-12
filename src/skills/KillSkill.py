@@ -1,7 +1,5 @@
 # Kill Skill
 
-from asyncio import create_task
-
 from .Skill import Skill
 from agent.Agent import Agent
 from capacities.LifeCycleCapacity import LifeCycleCapacity
@@ -19,6 +17,6 @@ class KillSkill(Skill, LifeCycleCapacity) :
     """
         Demands the arrest and destruction of an agent.
     """
-    def killMe(self, agent: Agent) -> None :
+    async def killMe(self, agent: Agent) -> None :
         
-        create_task(Kernel.getInstance().getService(LifeCycleService).killAgent(agent))
+        await(Kernel.getInstance().getService(LifeCycleService).killAgent(agent))

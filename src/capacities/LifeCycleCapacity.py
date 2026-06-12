@@ -23,17 +23,18 @@ class LifeCycleCapacity(Capacity) :
         await(user.getSkill(SpawnSkill).spawn(agentType))
     
     """
-        Demands the arrest and destruction of the current agent.
+        Demands the arrest and destruction of an agent.
     """
     @staticmethod
-    def killMe(user: Agent) -> None :
+    async def killMe(user: Agent) -> None :
         
         from skills.KillSkill import KillSkill
-        user.getSkill(KillSkill).killMe(user)
+        await(user.getSkill(KillSkill).killMe(user))
     
     """ 
         Creates an agent in a specific context.
     """
     @staticmethod
-    def spawn_in_context(self, user: Agent, agent: Agent, context_id, *args) -> None :
+    async def spawn_in_context(self, user: Agent, agent: Agent, context_id, *args) -> None :
+        
         pass 

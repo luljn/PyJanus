@@ -23,5 +23,5 @@ class SpawnSkill(Skill, LifeCycleCapacity) :
     """ 
         Creates an agent in a specific context.
     """
-    def spawn_in_context(self, user: Agent, agent: Agent, context_id, *args) -> None :
+    async def spawn_in_context(self, user: Agent, agent: Agent, context_id, *args) -> None :
         pass 

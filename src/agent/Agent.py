@@ -80,7 +80,8 @@ class Agent(ABC) :
     # To request the death.
     def killMe(self) :
         from capacities.LifeCycleCapacity import LifeCycleCapacity
-        LifeCycleCapacity.killMe(self)
+        #print(f"[{self.__name}] I want to die")
+        create_task(LifeCycleCapacity.killMe(self))
     
     # Getters
     def getID(self) -> int :
