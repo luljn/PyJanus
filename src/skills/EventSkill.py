@@ -33,7 +33,7 @@ class EventSkill(Skill, EventCapacity) :
         
         pass
     
-    # To register an agent in a space.
+    # To register an agent in a space and in the global directory.
     def registerInSpace(self, agent: Agent, space: Space)-> None :
         
         Kernel.getInstance().getService(EventService).registerAgent(agent, space)

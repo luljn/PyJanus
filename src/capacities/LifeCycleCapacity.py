@@ -25,14 +25,15 @@ class LifeCycleCapacity(Capacity) :
     """
         Demands the arrest and destruction of the current agent.
     """
-    @abstractmethod
-    def killme(self, user: Agent) -> None :
+    @staticmethod
+    def killMe(user: Agent) -> None :
         
-        pass
+        from skills.KillSkill import KillSkill
+        user.getSkill(KillSkill).killMe(user)
     
     """ 
         Creates an agent in a specific context.
     """
-    @abstractmethod
+    @staticmethod
     def spawn_in_context(self, user: Agent, agent: Agent, context_id, *args) -> None :
         pass 

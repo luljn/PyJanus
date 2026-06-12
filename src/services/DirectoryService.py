@@ -1,4 +1,5 @@
-# Directory Service - VERSION CORRIGÉE FINALE
+# Directory Service
+
 from agent.Agent import Agent
 from .Service import Service
 from typing import List, Dict, Optional
@@ -23,7 +24,7 @@ class DirectoryService(Service):
         with self._lock:
             self._agents.clear()
         self._set_state("STOPPED")
-        print(f"[{self.name}] Service stoped")
+        print(f"[{self.name}] Service stopped")
     
     async def awaitRunning(self) -> None:
         while True:
@@ -41,6 +42,7 @@ class DirectoryService(Service):
             return str(agent.id)
         raise ValueError("Cannot get agent ID")
     
+    #
     def register_agent(self, agent: Agent) -> bool:
         """ try:
             agent_id = self._get_agent_id(agent)
@@ -52,11 +54,12 @@ class DirectoryService(Service):
             self._agents[agent.getID()] = agent
         return True
     
-    def unregister_agent(self, agent_id: str) -> bool:
+    #
+    def unregister_agent(self, agent: Agent) -> bool:
         with self._lock:
-            if agent_id not in self._agents:
+            if agent.getID() not in self._agents:
                 return False
-            del self._agents[agent_id]
+            del self._agents[agent.getID()]
         return True
     
     def getAgents(self) -> List[Agent]:

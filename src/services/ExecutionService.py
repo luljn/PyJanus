@@ -45,7 +45,7 @@ class ExecutionService(Service):
         if self._worker_thread and self._worker_thread.is_alive():
             await asyncio.to_thread(self._worker_thread.join, timeout=5.0)
         self._set_state("STOPPED")
-        print(f"[{self.name}] Service stoped"),  
+        print(f"[{self.name}] Service stopped"),  
     
     async def awaitRunning(self) -> None:
         """Attend que le service soit en état RUNNING"""

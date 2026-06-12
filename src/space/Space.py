@@ -38,7 +38,7 @@ class Space :
                     participant._receive(event)
     
     # To leave the space.
-    def leave(self, agent:Agent)-> None : self.getParticipants().remove(agent)
+    def unregister(self, agent:Agent)-> None : self.getParticipants().remove(agent)
     
     # Getters
     def getID(self)-> UUID : return self.__id

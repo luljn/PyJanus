@@ -1,7 +1,5 @@
 # Spawn Skill
 
-from asyncio import run
-
 from .Skill import Skill
 from agent.Agent import Agent
 from capacities.LifeCycleCapacity import LifeCycleCapacity
@@ -21,13 +19,6 @@ class SpawnSkill(Skill, LifeCycleCapacity) :
     async def spawn(self, agentType: str) -> None :
         
         await(Kernel.getInstance().getService(LifeCycleService).spawnAgent(agent_class=agentType))
-    
-    """
-        Demands the arrest and destruction of the current agent.
-    """
-    def killme(self, user: Agent) -> None :
-        
-        pass
     
     """ 
         Creates an agent in a specific context.

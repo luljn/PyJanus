@@ -57,7 +57,7 @@ class EventService(Service) :
             except asyncio.CancelledError:
                 pass
         self._set_state("STOPPED")
-        print(f"[{self.name}] Service stoped")
+        print(f"[{self.name}] Service stopped")
     
     def registerListener(self, event_type: str, callback: Callable, owner: str) -> str :
         
@@ -91,7 +91,7 @@ class EventService(Service) :
         return count
     
     # To emit an event
-    def emit(self, event:Event, source:Any = None, data:Any = None) -> Event :
+    def emit(self, event:Event, source:Any = None, data:Any = None) -> None :
         """Emits an event thread-safely and asynchronously."""
         from kernel.Kernel import Kernel
         """event_class_to_use = getattr(import_module(event_type), event_type.split('.')[-1])
@@ -143,4 +143,13 @@ class EventService(Service) :
         space.addParticipant(agent)
         agent.setSpace(space)
         print(f"Agent {agent.getName()} registered to space {space.getName()}\n")
+        return True
+    
+    # To unregister an agent from a space.
+    def unregisterAgentFromSpace(self, agent: Agent, space: Space) :
+        
+        if not (agent in space.getParticipants()) : return False
+        space.unregister(agent)
+        agent.setSpace(None)
+        print(f"Agent {agent.getName()} unregistered from space {space.getName()}\n")
         return True
