@@ -20,4 +20,4 @@ class HelloAgent(Agent) :
     
     def _onDestroy(self)-> None :
         
-        pass
+        super()._onDestroy()

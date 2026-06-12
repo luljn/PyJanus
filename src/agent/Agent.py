@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from asyncio import create_task
 from uuid import UUID, uuid4
 from threading import Thread
-from typing import TYPE_CHECKING, Type
+from typing import TYPE_CHECKING, Type, Optional
 
 from .AgentState import AgentState
 from event.Event import Event
@@ -16,13 +16,14 @@ if TYPE_CHECKING :
 
 class Agent(ABC) :
     
+    # Constructor.
     def __init__(self, id: UUID = None) :
         
         self.__id: UUID = uuid4() if id is None else id
         self.__name: str = f"{self.__class__.__name__}_{self.__id}"
         self.__state: AgentState = AgentState.NOT_RUNNING
         self.__thread: Thread = None
-        self.__space: Space = None
+        self.__space: Optional[Space] = None
         self.__skills:list[Skill] = []
         
         # Adding skills to the skills list.
@@ -40,21 +41,17 @@ class Agent(ABC) :
     @abstractmethod
     def _onDestroy(self)-> None :
         
-        raise NotImplementedError("Not implemented !")
+        self.setState(AgentState.DESTROYING)
+        print(f"[{self.getName()}] Agent destroyed\n")
     
     def _receive(self, event:Event)-> None :
         
-        #raise NotImplementedError("Not implemented !")
-        print(f"[{self.getName()}] I received the event Event_{event.getID()}\n")
+        print(f"[{self.getName()}] received the event Event_{event.getID()}\ndata : {event.getData()}\n")
     
     def _inSpace(self, space: Space)-> bool :
         
         if self in space.getParticipants() : return True
         return False
-    
-    def _leave(self, space: Space)-> None :
-        
-        if self._inSpace(space) : space.leave(self)
     
     # To get a skill with its Type.
     def getSkill(self, skillClass:Type[Skill])-> Skill :
@@ -79,7 +76,12 @@ class Agent(ABC) :
     def emit(self, eventType:Event)->None :
         from capacities.EventCapacity import EventCapacity
         EventCapacity.emitEvent(self, eventType)
-        
+    
+    # To request the death.
+    def killMe(self) :
+        from capacities.LifeCycleCapacity import LifeCycleCapacity
+        LifeCycleCapacity.killMe(self)
+    
     # Getters
     def getID(self) -> int :
         
@@ -102,6 +104,6 @@ class Agent(ABC) :
         
         self.__state = state
     
-    def setSpace(self, space: Space)-> None :
+    def setSpace(self, space: Optional[Space])-> None :
         
         self.__space = space

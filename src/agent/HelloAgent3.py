@@ -6,6 +6,7 @@ from services.EventService import EventService
 from services.LifeCycleService import Initialize
 from services.LifeCycleService import LifeCycleService
 from skills.EventSkill import EventSkill
+from skills.KillSkill import KillSkill
 from skills.SpawnSkill import SpawnSkill
 from .HelloAgent4 import HelloAgent4
 from event.AgentSpawned import AgentSpawned
@@ -16,9 +17,9 @@ class HelloAgent3(Agent):
     def __init__(self, id : UUID = None):
         super().__init__(id)
         # Define the mapping for all the function from the used capacities
-        self.killMe = lambda: self.getSkill(Type[LifeCycleService]).killMe()
-        self.spawn = lambda agent_type, *args: self.getSkill(Type[SpawnSkill]).spawnAgent(agent_type, *args)
-        #self.emit = lambda event, filter=None: self.getSkill(EventSkill).emit(event, filter)
+        #self.killMe = lambda: self.getSkill(Type[KillSkill]).killMe()
+        #self.spawnAgent = lambda agent_type, *args: self.getSkill(Type[SpawnSkill]).spawn(agent_type, *args)
+        #self.emit = lambda event, filter=None: self.getSkill(EventSkill).emit(self, event)
     
     # Nothing to generates for the SARL statement:
     # uses Lifecycle
@@ -43,8 +44,8 @@ class HelloAgent3(Agent):
     def __on_AgentSpawned__(self, occurrence: AgentSpawned):
         print("The other agent was spawned")
         self.emit(occurrence)
-        #self.killMe()
+        self.killMe()
     
     def _onDestroy(self)-> None :
         
-        pass
+        super()._onDestroy()
