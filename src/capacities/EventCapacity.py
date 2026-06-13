@@ -32,9 +32,10 @@ class EventCapacity(Capacity) :
     """ 
         Processes an received event.
     """
-    @abstractmethod
-    def receive(self, user: Agent, event:Event)-> None :
-        pass
+    @staticmethod
+    def receive(user: Agent, event:Event)-> None :
+        from skills.EventSkill import EventSkill
+        user.getSkill(EventSkill).receive(user, event)
     
     """
         It awakens the agent's behaviors that are awaiting this specific event.

@@ -146,10 +146,15 @@ class EventService(Service) :
         return True
     
     # To unregister an agent from a space.
-    def unregisterAgentFromSpace(self, agent: Agent, space: Space) :
+    def unregisterAgentFromSpace(self, agent: Agent, space: Space)->bool :
         
         if not (agent in space.getParticipants()) : return False
         space.unregister(agent)
         agent.setSpace(None)
         print(f"Agent {agent.getName()} unregistered from space {space.getName()}\n")
         return True
+    
+    # To process the reception on an event.
+    def receive(self, agent: Agent, event: Event)->None :
+        
+        print(f"[{agent.getName()}] received the event Event_{event.getID()}\ndata : {event.getData()}\n")

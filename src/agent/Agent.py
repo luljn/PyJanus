@@ -32,22 +32,27 @@ class Agent(ABC) :
         from skills.SpawnSkill import SpawnSkill
         self.__skills.extend([EventSkill(), KillSkill(), SpawnSkill()])
     
+    # Initialization method.
     @abstractmethod
     def _onInitialize(self, occurrence : Initialize = None) :
         
         self.__thread = Thread(daemon=True)
         self.__thread.start()
     
+    # Destruction method.
     @abstractmethod
     def _onDestroy(self)-> None :
         
         self.setState(AgentState.DESTROYING)
         print(f"[{self.getName()}] Agent destroyed\n")
     
+    # To process the reception of an event.
     def _receive(self, event:Event)-> None :
         
-        print(f"[{self.getName()}] received the event Event_{event.getID()}\ndata : {event.getData()}\n")
+        from capacities.EventCapacity import EventCapacity
+        EventCapacity.receive(self, event)
     
+    # To determine if an agent is a participant of a specific space
     def _inSpace(self, space: Space)-> bool :
         
         if self in space.getParticipants() : return True

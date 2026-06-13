@@ -17,16 +17,16 @@ class EventSkill(Skill, EventCapacity) :
         super().__init__()
     
     # To  emit an event.
-    def emit(self, agent: Agent, eventType:Event)-> None :
+    def emit(self, agent: Agent, eventType: Event)-> None :
         
         """ Kernel.getInstance().getDefaultSpace().send(
             Kernel.getInstance().getService(EventService).emit(event=eventType, source=agent)) """
         Kernel.getInstance().getService(EventService).emit(event=eventType, source=agent)
     
-    #
-    def receive(self)-> None : 
+    # To process an received event.
+    def receive(self, agent: Agent, event: Event)-> None : 
         
-        pass
+        Kernel.getInstance().getService(EventService).receive(agent, event)
     
     #
     def wake(self)-> None : 
