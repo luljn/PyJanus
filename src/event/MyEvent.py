@@ -9,18 +9,22 @@ class MyEvent(Event) :
         super().__init__()
         self.__value1 : int = value1
         self.__value2 : str = value2
-
+    
     @property
     def value1(self) -> int :
         
         return self.__value1
-
+    
     @property
     def value2(self) -> str :
         
         return self.__value2
-
+    
     @value2.setter
     def value2(self, v : str) :
         
         self.__value2 = v
+    
+    def __str__(self)-> None :
+        
+        return f'Event_{self.__class__.__name__}_{self.id} trigerred\ndata : {self.data}\n'

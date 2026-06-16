@@ -2,12 +2,9 @@
 
 from __future__ import annotations
 from asyncio import run
-from threading import Thread
-from time import sleep
 from typing import Optional, Type
 
 from .ArgType import ArgType
-from agent.Agent import Agent
 from services.Service import Service
 from services.DirectoryService import DirectoryService
 from services.EventService import EventService
@@ -16,7 +13,7 @@ from services.LifeCycleService import LifeCycleService
 from space.Space import Space
 
 """
-    _summary_ : 
+    _summary_ : The heart of the system.
     
 """
 class Kernel : 
@@ -29,11 +26,9 @@ class Kernel :
         self.__services: list[Service] = []
         self.__defaultSpace: Space = Space()
         self.__running: bool = False
-        #self.__stopFlag = {'active': False}
-        #self.__mainThread: Thread = Thread(args=(self.__stopFlag,))
         
         # Adding services to the services list.
-        self.__services.extend([LifeCycleService(agent_concrete_class=Agent), DirectoryService(), ExecutionService(), EventService()])
+        self.__services.extend([LifeCycleService(), DirectoryService(), ExecutionService(), EventService()])
     
     # Return an unique instance of the Kernel.
     @staticmethod
@@ -49,12 +44,11 @@ class Kernel :
         
         self.__running = True
         print("[INFO] Kernel started successfully :) !\n")
+        
         # Starting all the services.
         print("[INFO] Start services !\n")
         for service in self.__services :
             run(service.start_async())
-        """ self.__mainThread.start()
-        self.__mainThread.join() """
     
     # Stop the kernel.
     def stop(self) -> None :
@@ -67,15 +61,18 @@ class Kernel :
             if (self.__running) :
                 self.__running = False
                 print("\n[INFO] Kernel stoped without any error :) !\n")
-        except : # Exception management to implement.
-            pass
+        
+        except Exception as e :
+            
+            print("[INFO] An unexpected error occured during the stopping operation :( !")
+            print("[ERROR] " + e + "\n")
+            exit(1)
     
     # To get a service with its Type.
     def getService(self, serviceClass: Type[Service])->Service :
         
         for service in self.__services : 
             if(isinstance(service, serviceClass)) :
-                #print(f"service class : {service.__class__}") # To remove (it is just for testing).
                 return service
     
     # Spawn an agent.
@@ -92,7 +89,7 @@ class Kernel :
         
         return self.__defaultSpace
     
-    #
+    # To get the running state of the kernel.
     def getRunningState(self) :
         
         if self.__running : return self.__running

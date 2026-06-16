@@ -1,34 +1,24 @@
-from typing import Dict, List, Callable, Any, Optional
-from dataclasses import dataclass
-from datetime import datetime
 import asyncio
-import uuid
+from importlib import import_module
+from typing import Dict, List, Callable, Any, Optional
+from uuid import UUID, uuid4
+
 from .Service import Service
 from agent.Agent import Agent
+from event.Event import Event
 from space.Space import Space
 
-@dataclass
-class Event:
-    """Structure d'un événement au sein du système de communication"""
-    id: str
-    event_type: str
-    source: str
-    data: Any
-    timestamp: datetime
-    
-    def getSource(self) -> str: return self.source
-    def setSource(self, source: str) -> None: self.source = source
-    def toString(self) -> str:
-        return f"Event(id={self.id}, type={self.event_type}, source={self.source})"
 
-class EventListener:
+
+class EventListener :
+    
     def __init__(self, listener_id: str, event_type: str, callback: Callable, owner: str):
         self.id = listener_id
         self.event_type = event_type
         self.callback = callback
         self.owner = owner
     
-    async def execute(self, event: Event) -> None:
+    async def execute(self, event: Event) -> None :
         try:
             if asyncio.iscoroutinefunction(self.callback):
                 await self.callback(event)
@@ -37,16 +27,18 @@ class EventListener:
         except Exception as e:
             print(f"Erreur lors de l'exécution de l'écouteur {self.id} de {self.owner}: {e}")
 
-class EventService(Service):
+class EventService(Service) :
     
-    def __init__(self):
+    def __init__(self) :
+        
         super().__init__()
         self._listeners: Dict[str, List[EventListener]] = {}
         self._event_queue: Optional[asyncio.Queue] = None
         self._dispatcher_task: Optional[asyncio.Task] = None
         self._running = False
     
-    async def startAsync(self) -> None:
+    async def startAsync(self) -> None :
+        
         self._set_state("STARTING")
         self._running = True
         self._event_queue = asyncio.Queue()
@@ -54,7 +46,8 @@ class EventService(Service):
         self._set_state("RUNNING")
         print(f"[{self.name}] Service started.")
     
-    async def stopAsync(self) -> None:
+    async def stopAsync(self) -> None :
+        
         self._set_state("STOPPING")
         self._running = False
         if self._dispatcher_task:
@@ -64,17 +57,19 @@ class EventService(Service):
             except asyncio.CancelledError:
                 pass
         self._set_state("STOPPED")
-        print(f"[{self.name}] Service stoped")
+        print(f"[{self.name}] Service stopped")
     
-    def registerListener(self, event_type: str, callback: Callable, owner: str) -> str:
-        listener_id = str(uuid.uuid4())
+    def registerListener(self, event_type: str, callback: Callable, owner: str) -> str :
+        
+        listener_id = str(uuid4())
         listener = EventListener(listener_id, event_type, callback, owner)
         if event_type not in self._listeners:
             self._listeners[event_type] = []
         self._listeners[event_type].append(listener)
         return listener_id
     
-    def unregisterListener(self, listener_id: str) -> bool:
+    def unregisterListener(self, listener_id: str) -> bool :
+        
         for event_type, listeners in self._listeners.items():
             for i, listener in enumerate(listeners):
                 if listener.id == listener_id:
@@ -84,7 +79,8 @@ class EventService(Service):
                     return True
         return False
     
-    def unregisterListenerByOwner(self, owner: str) -> int:
+    def unregisterListenerByOwner(self, owner: str) -> int :
+        
         count = 0
         for event_type in list(self._listeners.keys()):
             initial_count = len(self._listeners[event_type])
@@ -94,21 +90,29 @@ class EventService(Service):
                 del self._listeners[event_type]
         return count
     
-    def emit(self, event_type: str, source: str, data: Any = None) -> str:
-        """Émet un événement de manière thread-safe et asynchrone."""
-        event_id = str(uuid.uuid4())
-        event = Event(id=event_id, event_type=event_type, source=source, data=data, timestamp=datetime.now())
+    # To emit an event
+    def emit(self, event:Event, source:Any = None, data:Any = None) -> None :
+        """Emits an event thread-safely and asynchronously."""
+        from kernel.Kernel import Kernel
+        """event_class_to_use = getattr(import_module(event_type), event_type.split('.')[-1])
+        event:Event = event_class_to_use(source=source,data=data) """
+        
+        if source is not None : event.setSource(source)
+        if data is not None : event.setData(data)
         
         if self._running and self._event_queue is not None:
-            # Permet d'insérer depuis n'importe quel thread ou boucle asynchrone d'origine
+            # Allows inserting from any original asynchronous thread or loop
             try:
                 loop = asyncio.get_running_loop()
                 loop.call_soon_threadsafe(self._event_queue.put_nowait, event)
+                #if(source is not None and issubclass(source, Agent)) : source.getSpace().emit()
             except RuntimeError:
-                # Si aucune boucle n'est active dans le thread courant
+                # If no loop is active in the current thread
                 if self._loop and self._loop.is_running():
                     self._loop.call_soon_threadsafe(self._event_queue.put_nowait, event)
-        return event_id
+        print(event)
+        Kernel.getInstance().getDefaultSpace().send(event)
+        #return event
         
     async def _dispatch_loop(self) -> None:
         """Boucle de routage interne distribuant les événements aux écouteurs enregistrés."""
@@ -135,7 +139,22 @@ class EventService(Service):
     # To register an agent in a space.
     def registerAgent(self, agent: Agent, space: Space) -> bool :
         
-        if agent.getID() in space.getParticipants() : return False
-        space.addParticipant(agent.getID())
-        print(f"Agent {agent.getName()} registered to space {space.getName()}")
+        if agent in space.getParticipants() : return False
+        space.addParticipant(agent)
+        agent.setSpace(space)
+        print(f"Agent {agent.getName()} registered to space {space.getName()}\n")
         return True
+    
+    # To unregister an agent from a space.
+    def unregisterAgentFromSpace(self, agent: Agent, space: Space)->bool :
+        
+        if not (agent in space.getParticipants()) : return False
+        space.unregister(agent)
+        agent.setSpace(None)
+        print(f"Agent {agent.getName()} unregistered from space {space.getName()}\n")
+        return True
+    
+    # To process the reception on an event.
+    def receive(self, agent: Agent, event: Event)->None :
+        
+        print(f"[{agent.getName()}] received the event Event_{event.getID()}\ndata : {event.getData()}\n")

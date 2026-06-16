@@ -41,7 +41,7 @@ class LifeCycleService(Service):
     async def stopAsync(self) -> None:
         self._set_state("STOPPING")
         self._running = False
-        print(f"[{self.name}] Service stoped")
+        print(f"[{self.name}] Service stopped")
         
         with self._lock:
             agent_ids = list(self._agents.keys())
@@ -49,7 +49,6 @@ class LifeCycleService(Service):
                 await self._kill_agent_async(agent_id)
         
         self._set_state("STOPPED")
-        print(f"[{self.name}] Service stopped")
     
     def _call_agent_method(self, agent, private_method_name: str, fallback_name: str, *args, **kwargs):
         """Dynamically calls a method of the agent (protected or public)."""
@@ -92,20 +91,19 @@ class LifeCycleService(Service):
         return True
     
     async def spawnAgent(self, name: Optional[str] = None, space:Space=None, agent_class:str=None, 
-                         auto_initialize: bool = True, **kwargs) -> None :
+                         **kwargs) -> None :
         if not self._running:
             raise RuntimeError(f"[{self.name}] Service is not in RUNNING state")
         
-        #external_id = str(uuid.uuid4())
-        #agent_class_to_use = agent_class or self._agent_concrete_class
         agent_class_to_use = getattr(import_module(agent_class), agent_class.split('.')[-1])
         if not agent_class_to_use:
             raise RuntimeError(f"[{self.name}] No Agent class given.")
         
         try:
             # Agent creation and initialization.
-            agent:Agent = agent_class_to_use()
-            Initialize.initialize(agent)
+            agent:Agent = agent_class_to_use() 
+            print(f"[INFO] Agent {agent.getName()} created")
+            Initialize.initialize(agent, self)
         except TypeError as e:
             raise RuntimeError(f"[{self.name}] Instantiation failed {agent_class_to_use}: {e}")
         
@@ -114,30 +112,29 @@ class LifeCycleService(Service):
         if space:
             self._set_agent_attr(agent, 'space', space)
         
-        from kernel.Kernel import Kernel
-        agent.register(Kernel.getInstance().getDefaultSpace())
+        if (not name and not space) :
+            from kernel.Kernel import Kernel
+            agent.register(Kernel.getInstance().getDefaultSpace())
+        
+        from services.EventService import EventService
+        from services.DirectoryService import DirectoryService
+        Kernel.getInstance().getService(EventService).emit(self.emitAgentSpawned(agent))
         print(f"\n[{self.name}] Agent spawned-> Name: {agent.getName()} - ID: {agent.getID()} - Type: {agent.__class__.__name__}\n")
-        await self._trigger_callbacks('agent_created', agent.getID(), agent)
-        
-        if auto_initialize:
-            try:
-                self._call_agent_method(agent, '_onInitialize', 'onInitialize')
-                #t = threading.Thread(target=self._call_agent_method(agent, '_onInitialize', 'onInitialize'))
-                #t.start()
-                #t.join()
-            except AttributeError:
-                print(f"[{self.name}] Warning: agent has not onInitialize method")
-        
-        """  with self._lock:
-            self._agents[external_id] = agent
-            self._agent_ids[agent] = external_id """
+        print("Number of running agent : " + str(Kernel.getInstance().getService(DirectoryService).getNumberOfAgents()) + "\n")
     
-    async def killAgent(self, agent_id: str, auto_destroy: bool = True) -> bool:
-        if not self._running:
-            return False
-        return await self._kill_agent_async(agent_id, auto_destroy)
+    # To kill an agent.
+    async def killAgent(self, agent:Agent) :
+        
+        from kernel.Kernel import Kernel
+        from services.DirectoryService import DirectoryService
+        Kernel.getInstance().getService(DirectoryService).unregister_agent(agent)
+        self._call_agent_method(agent, '_onDestroy', 'onDestroy')
+        from services.EventService import EventService
+        Kernel.getInstance().getService(EventService).emit(self.emitAgentDestroyed(agent))
+        del agent
+        print("Number of running agent : " + str(Kernel.getInstance().getService(DirectoryService).getNumberOfAgents()) + "\n")
     
-    async def _kill_agent_async(self, agent_id: str, auto_destroy: bool = True) -> bool:
+    """async def _kill_agent_async(self, agent_id: str, auto_destroy: bool = True) -> bool:
         with self._lock:
             if agent_id not in self._agents:
                 return False
@@ -162,7 +159,7 @@ class LifeCycleService(Service):
             
             agent_name = self._get_agent_attr(agent, 'name', "Unknown")
             print(f"[{self.name}] Agent Killed: {agent_name} (ID: {agent_id})")
-            return True
+            return True """
             
     def getAgent(self, agent_id: str) -> Optional[Any]:
         with self._lock: return self._agents.get(agent_id)
@@ -200,15 +197,26 @@ class LifeCycleService(Service):
                 except Exception as e:
                     print(f"[{self.name}] Error in callback {event}: {e}")
     
-    def emitAgentSpwaned()->Event : 
-        from kernel.Kernel import Kernel
-        from services.EventService import EventService
-        Kernel.getInstance().getService(EventService).emit()
+    # To emit AgentSpawned event.
+    def emitAgentSpawned(self, agent:Agent)->Event : 
+        
+        from event.AgentSpawned import AgentSpawned
+        event:AgentSpawned = AgentSpawned(source=self, data=f"Agent {agent.getName()} was spawned")
+        return event
+    
+    # To emit AgentDestroyed event.
+    def emitAgentDestroyed(self, agent: Agent)->Event :
+        
+        from event.AgentDestroyed import AgentDestroyed
+        event:AgentDestroyed = AgentDestroyed(source=self, data=f"Agent {agent.getName()} was detroyed")
+        return event
 
 class Initialize:
     """Initialization event for agents"""
     @staticmethod
-    def initialize(agent: Agent)-> None : 
-        print(f"Initialization of Agent {agent.getName()}")
+    def initialize(agent: Agent, service:LifeCycleService)-> None : 
+        print(f"Initialization of agent {agent.getName()}")
         agent.setState(AgentState.INITIALIZING)
+        service._call_agent_method(agent, '_onInitialize', 'onInitialize')
+        #print(service.emitAgentSpawned(agent))
         return None

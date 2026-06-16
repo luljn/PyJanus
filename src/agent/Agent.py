@@ -2,28 +2,28 @@
 
 from __future__ import annotations
 from abc import ABC, abstractmethod
+from asyncio import create_task
 from uuid import UUID, uuid4
 from threading import Thread
-from typing import TYPE_CHECKING, Type
+from typing import TYPE_CHECKING, Type, Optional
 
 from .AgentState import AgentState
-from space.Space import Space
+from event.Event import Event
 if TYPE_CHECKING :
-    from capacities.EventCapacity import EventCapacity
-    from capacities.LifeCycleCapacity import LifeCycleCapacity
     from services.LifeCycleService import Initialize
     from skills.Skill import Skill
+    from space.Space import Space
 
 class Agent(ABC) :
     
-    @abstractmethod
+    # Constructor.
     def __init__(self, id: UUID = None) :
         
         self.__id: UUID = uuid4() if id is None else id
-        self.__name: str = f"Agent_{self.__id}"
+        self.__name: str = f"{self.__class__.__name__}_{self.__id}"
         self.__state: AgentState = AgentState.NOT_RUNNING
         self.__thread: Thread = None
-        self.__space: Space = None
+        self.__space: Optional[Space] = None
         self.__skills:list[Skill] = []
         
         # Adding skills to the skills list.
@@ -31,9 +31,62 @@ class Agent(ABC) :
         from skills.KillSkill import KillSkill
         from skills.SpawnSkill import SpawnSkill
         self.__skills.extend([EventSkill(), KillSkill(), SpawnSkill()])
+    
+    # Initialization method.
+    @abstractmethod
+    def _onInitialize(self, occurrence : Initialize = None) :
         
-        # 
-        print(f"[INFO] Agent {self.__name} created")
+        self.__thread = Thread(daemon=True)
+        self.__thread.start()
+    
+    # Destruction method.
+    @abstractmethod
+    def _onDestroy(self)-> None :
+        
+        self.setState(AgentState.DESTROYING)
+        print(f"[{self.getName()}] Agent destroyed\n")
+    
+    # To process the reception of an event.
+    def _receive(self, event:Event)-> None :
+        
+        from capacities.EventCapacity import EventCapacity
+        EventCapacity.receive(self, event)
+    
+    # To determine if an agent is a participant of a specific space
+    def _inSpace(self, space: Space)-> bool :
+        
+        if self in space.getParticipants() : return True
+        return False
+    
+    # To get a skill with its Type.
+    def getSkill(self, skillClass:Type[Skill])-> Skill :
+        for skill in self.__skills : 
+            if(isinstance(skill, skillClass)) :
+                return skill
+    
+    # To register in a Space.
+    def register(self, space: Space)-> None :
+        
+        from capacities.EventCapacity import EventCapacity
+        EventCapacity.registerInSpace(self, space)
+    
+    # To spawn an agent.
+    def spawnAgent(self, agentType:str) :
+        
+        from capacities.LifeCycleCapacity import LifeCycleCapacity
+        print(f"[{self.__name}] agent to spawn : {agentType}")
+        create_task(LifeCycleCapacity.spawn(self, agentType))
+    
+    # To emit an event.
+    def emit(self, eventType:Event)->None :
+        from capacities.EventCapacity import EventCapacity
+        EventCapacity.emitEvent(self, eventType)
+    
+    # To request the death.
+    def killMe(self) :
+        from capacities.LifeCycleCapacity import LifeCycleCapacity
+        #print(f"[{self.__name}] I want to die")
+        create_task(LifeCycleCapacity.killMe(self))
     
     # Getters
     def getID(self) -> int :
@@ -57,50 +110,6 @@ class Agent(ABC) :
         
         self.__state = state
     
-    def setSpace(self, space: Space)-> None :
+    def setSpace(self, space: Optional[Space])-> None :
         
         self.__space = space
-    
-    # To get a skill with its Type.
-    def getSkill(self, skillClass:Type[Skill])-> Skill :
-        for skill in self.__skills : 
-            if(isinstance(skill, skillClass)) :
-                return skill
-    
-    # To register in a Space
-    def register(self, space: Space)-> None :
-        
-        from capacities.EventCapacity import EventCapacity
-        EventCapacity.registerInSpace(self, space)
-    
-    @abstractmethod
-    def _onInitialize(self, occurrence : Initialize = None) :
-        
-        #self.__state = AgentState.INITIALIZING
-        #raise NotImplementedError("Not implemented !")
-        self.__thread = Thread(target=self.test, daemon=True)
-        self.__thread.start()
-    
-    @abstractmethod
-    def _onDestroy(self)-> None :
-        
-        raise NotImplementedError("Not implemented !")
-    
-    @abstractmethod
-    def _receive(self)-> None :
-        
-        raise NotImplementedError("Not implemented !")
-    
-    @abstractmethod
-    def _inSpace(self, space: Space)-> bool :
-        
-        raise NotImplementedError("Not implemented !")
-    
-    @abstractmethod
-    def _leave(self)-> None :
-        
-        raise NotImplementedError("Not implemented !")
-    
-    #
-    def test(self) :
-        pass 

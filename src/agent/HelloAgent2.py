@@ -10,7 +10,7 @@ class HelloAgent2(Agent):
     def __init__(self):
         super().__init__()
         # Define the mapping for all the function from the used capacities
-        self.killMe = lambda: self.getSkill(Type[KillSkill]).killMe()
+        #self.killMe = lambda: self.getSkill(Type[KillSkill]).killMe()
 
     # Nothing to generates for the SARL statement:
     # uses Lifecycle
@@ -25,22 +25,8 @@ class HelloAgent2(Agent):
         self.setState(AgentState.RUNNING)
         print(f"[{self.getName()}] Hello World 2\n")
         # Call the function killMe defined in the capacity Lifecycle
-        #self.killMe()
+        self.killMe()
     
     def _onDestroy(self)-> None :
         
-        pass
-    
-    def _receive(self)-> None :
-        
-        pass
-    
-    def _inSpace(self, space: Space)-> None :
-        
-        if self.__id in space.getParticipants() : return True
-        return False
-    
-    def _leave(self)-> None :
-        
-        pass
-
+        super()._onDestroy()

@@ -2,7 +2,6 @@ from typing import Callable
 from .Agent import Agent
 from .AgentState import AgentState
 from services.LifeCycleService import Initialize
-from space.Space import Space
 
 class HelloAgent(Agent) :
     
@@ -21,17 +20,4 @@ class HelloAgent(Agent) :
     
     def _onDestroy(self)-> None :
         
-        pass
-    
-    def _receive(self)-> None :
-        
-        pass
-    
-    def _inSpace(self, space: Space)-> None :
-        
-        if self.__id in space.getParticipants() : return True
-        return False
-    
-    def _leave(self)-> None :
-        
-        pass
+        super()._onDestroy()

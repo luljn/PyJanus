@@ -83,7 +83,8 @@ class Service(ABC):
             asyncio.run_coroutine_threadsafe(self.stopAsync(), self._loop)
     
     async def start_async(self):
-        self._thread = threading.Thread(target=sleep(1), daemon=True)
+        #self._thread = threading.Thread(target=sleep(1), daemon=True)
+        self._thread = threading.Thread(daemon=True)
         await self.startAsync()
     
     async def stop_async(self):
