@@ -62,10 +62,10 @@ class Kernel :
                 self.__running = False
                 print("\n[INFO] Kernel stoped without any error :) !\n")
         
-        except RuntimeError as e :
+        except Exception as e :
             
             print("[INFO] An unexpected error occured during the stopping operation :( !")
-            print("[ERROR] " + e)
+            print("[ERROR] " + e + "\n")
             exit(1)
     
     # To get a service with its Type.
