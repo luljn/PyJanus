@@ -1,4 +1,4 @@
-# abstract class Agent
+# Abstract class Agent.
 
 from __future__ import annotations
 from abc import ABC, abstractmethod
@@ -14,13 +14,15 @@ if TYPE_CHECKING :
     from skills.Skill import Skill
     from space.Space import Space
 
+"""_summary_ : The base class for all the agents.
+"""
 class Agent(ABC) :
     
     # Constructor.
     def __init__(self, id: UUID = None) :
         
         self.__id: UUID = uuid4() if id is None else id
-        self.__name: str = f"{self.__class__.__name__}_{self.__id}"
+        self.__name: str = self.__class__.__name__ + "_" + str(self.__id)
         self.__state: AgentState = AgentState.NOT_RUNNING
         self.__thread: Thread = None
         self.__space: Optional[Space] = None
@@ -44,7 +46,7 @@ class Agent(ABC) :
     def _onDestroy(self)-> None :
         
         self.setState(AgentState.DESTROYING)
-        print(f"[{self.getName()}] Agent destroyed\n")
+        print("[" + self.getName() + "] Agent destroyed\n")
     
     # To process the reception of an event.
     def _receive(self, event:Event)-> None :
@@ -52,7 +54,7 @@ class Agent(ABC) :
         from capacities.EventCapacity import EventCapacity
         EventCapacity.receive(self, event)
     
-    # To determine if an agent is a participant of a specific space
+    # To determine if an agent is a participant of a specific space.
     def _inSpace(self, space: Space)-> bool :
         
         if self in space.getParticipants() : return True
@@ -74,7 +76,7 @@ class Agent(ABC) :
     def spawnAgent(self, agentType:str) :
         
         from capacities.LifeCycleCapacity import LifeCycleCapacity
-        print(f"[{self.__name}] agent to spawn : {agentType}")
+        print("[" + self.__name + "] agent to spawn : " + agentType)
         create_task(LifeCycleCapacity.spawn(self, agentType))
     
     # To emit an event.
@@ -85,10 +87,9 @@ class Agent(ABC) :
     # To request the death.
     def killMe(self) :
         from capacities.LifeCycleCapacity import LifeCycleCapacity
-        #print(f"[{self.__name}] I want to die")
         create_task(LifeCycleCapacity.killMe(self))
     
-    # Getters
+    # Getters.
     def getID(self) -> int :
         
         return self.__id
@@ -105,7 +106,7 @@ class Agent(ABC) :
         
         return self.__space
     
-    # Setters
+    # Setters.
     def setState(self, state: AgentState)-> None :
         
         self.__state = state

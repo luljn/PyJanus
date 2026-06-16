@@ -32,10 +32,10 @@ class HelloAgent3(Agent):
     def _onInitialize(self, occurrence : Initialize = None):
         super()._onInitialize()
         self.setState(AgentState.RUNNING)
-        print(f"[{self.getName()}] Hello World 3\n")
+        print("[" + self.getName() + "] Hello World 3\n")
         #self.spawn(Type[HelloAgent4])
         self.spawnAgent(HelloAgent4.__module__)
-        self.__on_AgentSpawned__(AgentSpawned(source=self, data=f"[Agent {self.getName()}] has spawned {HelloAgent4.__module__} Type"))
+        self.__on_AgentSpawned__(AgentSpawned(source=self, data="Agent [" + self.getName() + "] has spawned " + HelloAgent4.__module__ + " agent Type."))
 
     def __guard_AgentSpawned__(self, occurrence: AgentSpawned, _event_handlers: list[Callable[[AgentSpawned], None]]):
         it = occurrence
