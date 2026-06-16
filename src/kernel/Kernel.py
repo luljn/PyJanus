@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 from asyncio import run
+from sys import exit
 from typing import Optional, Type
 
 from .ArgType import ArgType
@@ -40,25 +41,33 @@ class Kernel :
     # Start the kernel.
     def start(self) -> None : 
         
-        self.__running = True
-        print("[INFO] Kernel started successfully :) !\n")
+        try :
+            self.__running = True
+            print("[INFO] Kernel started successfully :) !\n")
+            
+            # Starting all the services.
+            print("[INFO] Start services !\n")
+            for service in self.__services :
+                run(service.start_async())
         
-        # Starting all the services.
-        print("[INFO] Start services !\n")
-        for service in self.__services :
-            run(service.start_async())
+        except Exception as e :
+            
+            print("[INFO] An unexpected error occured during the starting operation :( !")
+            print("[ERROR] " + str(e) + "\n")
+            exit(1)
     
     # Stop the kernel.
     def stop(self) -> None :
         
         try :
+            print("\n[INFO] No more running agent, stopping sequence initialized...\n")
             # Stoping all the services.
             for service in self.__services :
                 run(service.stop_async())
             
             if (self.__running) :
                 self.__running = False
-                print("\n[INFO] Kernel stoped without any error :) !\n")
+                print("\n[INFO] Kernel stopped without any error :) !\n")
         
         except Exception as e :
             

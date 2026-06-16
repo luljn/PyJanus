@@ -59,6 +59,9 @@ class DirectoryService(Service):
         with self._lock:
             if agent.getID() not in self._agents:
                 return False
+            from kernel.Kernel import Kernel
+            from services.EventService import EventService
+            Kernel.getInstance().getService(EventService).unregisterAgentFromSpace(agent, agent.getSpace())
             del self._agents[agent.getID()]
         return True
     
