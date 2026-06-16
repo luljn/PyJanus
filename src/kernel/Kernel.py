@@ -1,4 +1,4 @@
-# class Kernel
+# class Kernel.
 
 from __future__ import annotations
 from asyncio import run
@@ -12,9 +12,7 @@ from services.ExecutionService import ExecutionService
 from services.LifeCycleService import LifeCycleService
 from space.Space import Space
 
-"""
-    _summary_ : The heart of the system.
-    
+"""_summary_ : The heart of the system.
 """
 class Kernel : 
     
@@ -65,7 +63,7 @@ class Kernel :
         except Exception as e :
             
             print("[INFO] An unexpected error occured during the stopping operation :( !")
-            print("[ERROR] " + e + "\n")
+            print("[ERROR] " + str(e) + "\n")
             exit(1)
     
     # To get a service with its Type.

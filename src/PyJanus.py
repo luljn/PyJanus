@@ -11,21 +11,19 @@ from kernel.Kernel import Kernel
 from kernel.ArgType import ArgType
 from services.DirectoryService import DirectoryService
 
-"""
-    _summary_ : The main class, its role is to start the Kernel.
-    
+"""_summary_ : The main class, its role is to start the Kernel.    
 """
 class Main : 
     
     # Class attributes.
-    __parser = ArgumentParser(description="Process the execution of agents.")
+    __parser = ArgumentParser(description = "Process the execution of agents.")
     __argType: ArgType = None
     
     # Principal method.
     @staticmethod
     def run() -> None :
         
-        # Command Line args definition
+        # Command Line args definition.
         group = Main.__parser.add_mutually_exclusive_group(required=True)
         group.add_argument('-f', '--file', nargs='+', metavar='FILE',
                     help="Path to one or more .py files (e.g : agent/HelloAgent.py)")
@@ -56,10 +54,10 @@ class Main :
             for file in args.file :
                 
                 if not(path.exists(file)) or not(file.endswith('.py')) : 
-                    print(f"[ERROR] Agent type '{file}' not found :( ! Please check the file name.")
+                    print("[ERROR] Agent type " + file + " not found :( ! Please check the file name.")
                     exit(1)
             
-            print(f"\n\r[INFO] Agents to spawn : {args.file}\n")
+            print("\n\r[INFO] Agent(s) to spawn from file(s) : " + str(args.file)  + "\n")
             for file in args.file :
                 run(kernel.spawn(ArgType.FILE, file))
         
@@ -75,14 +73,14 @@ class Main :
                     import_module(module)
                 
                 except ModuleNotFoundError :
-                    print(f"[ERROR] : Agent '{module}' not found :( ! Please check the module name.")
+                    print("[ERROR] : Agent " + module + " not found :( ! Please check the module name.")
                     exit(1)
                 
                 except Exception as e :
-                    print(f"[ERROR] : Something went wrong while executing '{module}' : {e}")
+                    print("[ERROR] : Something went wrong while executing " + module + " : " + str(e))
                     exit(1)
             
-            print(f"\n\r[INFO] Agents to spawn : {args.module}\n")
+            print("\n\r[INFO] Agent(s) to spawn from module(s) : " + str(args.module) + "\n")
             for module in args.module :
                 run(kernel.spawn(ArgType.MODULE, module))
         
