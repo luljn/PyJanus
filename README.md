@@ -10,6 +10,13 @@ Python version of the SARL Runtime Environment.
 
 ## Getting started
 
+- You must have python installed on your computer.
+- Run the following command (in the 'src' directory) to see how to start the platform : python PyJanus.py -h
+
+### `command example to execute agents.`
+
+- `python PyJanus.py -m agent.HelloAgent` or `python PyJanus.py -f agent/HelloAgent.py`
+
 ### Contributors
 
 - Abir ZERIOH ([`AbiZerioh`](https://github.com/AbiZerioh)).
