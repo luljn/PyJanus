@@ -1,9 +1,9 @@
-# abstract class Skill
-
-from abc import ABC, abstractmethod
+# abstract class Skill.
 
 from capacities.Capacity import Capacity
 
+"""_summary_ : Skill base class.
+"""
 class Skill(Capacity) :
     
     referenceCount: int = 0

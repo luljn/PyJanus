@@ -1,4 +1,4 @@
-# Event Skill
+# Event Skill.
 
 from .Skill import Skill
 from agent.Agent import Agent
@@ -9,6 +9,8 @@ from services.EventService import EventService
 from services.DirectoryService import DirectoryService
 from space.Space import Space
 
+"""_summary_ : Skill used by an agent to manage events (emit, receive, etc...).
+"""
 class EventSkill(Skill, EventCapacity) :
     
     # Contructor.
@@ -19,8 +21,6 @@ class EventSkill(Skill, EventCapacity) :
     # To  emit an event.
     def emit(self, agent: Agent, eventType: Event)-> None :
         
-        """ Kernel.getInstance().getDefaultSpace().send(
-            Kernel.getInstance().getService(EventService).emit(event=eventType, source=agent)) """
         Kernel.getInstance().getService(EventService).emit(event=eventType, source=agent)
     
     # To process an received event.
@@ -28,13 +28,13 @@ class EventSkill(Skill, EventCapacity) :
         
         Kernel.getInstance().getService(EventService).receive(agent, event)
     
-    #
-    def wake(self)-> None : 
-        
-        pass
-    
     # To register an agent in a space and in the global directory.
     def registerInSpace(self, agent: Agent, space: Space)-> None :
         
         Kernel.getInstance().getService(EventService).registerAgent(agent, space)
         Kernel.getInstance().getService(DirectoryService).register_agent(agent)
+    
+    #
+    def wake(self)-> None : 
+        
+        pass
