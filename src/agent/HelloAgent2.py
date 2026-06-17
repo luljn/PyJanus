@@ -1,16 +1,15 @@
-from typing import Callable, Type
+from typing import Callable
+
 from .Agent import Agent
 from .AgentState import AgentState
 from services.LifeCycleService import Initialize
-from space.Space import Space
 from skills.KillSkill import KillSkill
-#from io.sarl.sre.pysarlvm.lang.core import Lifecycle
 
 class HelloAgent2(Agent):
     def __init__(self):
         super().__init__()
         # Define the mapping for all the function from the used capacities
-        #self.killMe = lambda: self.getSkill(Type[KillSkill]).killMe()
+        #self.killMe = lambda: self.getSkill(KillSkill).killMe(self)
 
     # Nothing to generates for the SARL statement:
     # uses Lifecycle
@@ -23,7 +22,7 @@ class HelloAgent2(Agent):
     def _onInitialize(self, occurrence : Initialize = None) :
         super()._onInitialize()
         self.setState(AgentState.RUNNING)
-        print(f"[{self.getName()}] Hello World 2\n")
+        print("[" + self.getName() + "] Hello World 2\n")
         # Call the function killMe defined in the capacity Lifecycle
         self.killMe()
     

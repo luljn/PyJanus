@@ -1,4 +1,4 @@
-# My Event
+# My Event.
 
 from .Event import Event
 
@@ -25,6 +25,7 @@ class MyEvent(Event) :
         
         self.__value2 = v
     
+    # __str__ method overriding.
     def __str__(self)-> None :
         
-        return f'Event_{self.__class__.__name__}_{self.id} trigerred\ndata : {self.data}\n'
+        return "Event_" + self.__class__.__name__ + "_" + str(self.id) + " trigerred\ndata : " + str(self.data) + "\n"

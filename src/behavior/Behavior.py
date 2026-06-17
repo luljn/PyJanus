@@ -1,10 +1,10 @@
-# class Behavior
+# class Behavior.
 
 from agent.Agent import Agent
 
 class Behavior() :
     
-    #
+    # Constructor.
     def __init__(self) :
         
         pass

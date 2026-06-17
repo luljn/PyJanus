@@ -16,7 +16,7 @@ class HelloAgent(Agent) :
     def _onInitialize(self, occurrence : Initialize = None) :
         super()._onInitialize(occurrence)
         self.setState(AgentState.RUNNING)
-        print(f"[{self.getName()}] Hello World\n")
+        print("[" + self.getName() +"] Hello World\n")
     
     def _onDestroy(self)-> None :
         

@@ -1,11 +1,11 @@
-# class Event
+# class Event.
 
 from datetime import datetime
 from typing import Any
 from uuid import UUID, uuid4
 
-
-
+"""_summary_ : Event base class.
+"""
 class Event :
     
     # Constructor.
@@ -39,7 +39,7 @@ class Event :
         
         self.data = data_
     
-    # toString equivalent in Python.
+    # __str__ method overriding (toString equivalent in Python).
     def __str__(self)-> None :
         
-        return f'Event_{self.getID()} trigerred\ndata : {self.getData()}\n'
+        return "Event_" + str(self.getID()) + " trigerred\ndata : " + str(self.getData()) + "\n"
