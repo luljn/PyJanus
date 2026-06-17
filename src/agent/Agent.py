@@ -107,6 +107,10 @@ class Agent(ABC) :
         return self.__space
     
     # Setters.
+    def setName(self, name: str)-> None :
+        
+        self.__name = name
+    
     def setState(self, state: AgentState)-> None :
         
         self.__state = state
