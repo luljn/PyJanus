@@ -23,7 +23,7 @@ class Kernel :
     def __init__(self) :
         
         self.__services: list[Service] = []
-        self.__defaultSpace: Space = Space()
+        self.__defaultSpace: Space = Space("Default_Space")
         self.__running: bool = False
         
         # Adding services to the services list.
